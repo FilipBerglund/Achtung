@@ -2,6 +2,7 @@
 (require "special-canvas.rkt")
 (require "curves.rkt")
 (require "powerup.rkt")
+(require "Abstractions.rkt")
 (define black (make-object color% 0 0 0))
 
 (define players (new curves%
@@ -19,18 +20,21 @@
   (let ([startTime (current-inexact-milliseconds)])
 
     (send dc set-pen black 15 'solid)
-    (send dc draw-line 0 600 0 0)
-    (send dc draw-line 0 0 800 0)
-    (send dc draw-line 800 0 800 600)
-    (send dc draw-line 0 600 800 600)
+    (send dc draw-line 10 600 10 10)
+    (send dc draw-line 10 10 800 10)
+    (send dc draw-line 800 10 800 600)
+    (send dc draw-line 10 600 800 600)
     (send players draw-powerups dc)
     (send players update-velocities)
     (send players draw-curves dc)
     (send players update-positions)
     (send players check-collisions)
     (send players check-powerups)
-
-    (displayln (- (current-inexact-milliseconds) startTime))))
+    (send players display-score dc)
+    (send dc set-brush red 'transparent)
+    (send (send *game-window* get-dc) draw-text "qweqwe" 900 40)
+    ;(displayln (- (current-inexact-milliseconds) startTime))
+    ))
 
 ;This is where the game is played
 (define *game-window*
@@ -53,9 +57,9 @@
        [parent *game-frame*]
        [label "Start"]
        [callback (lambda (button event)
+                   (send *game-window* focus)
                    (send Start set-label "playing..")
                    (send game-clock start 12 #f))]))
-
 (define Pause
   (new button%
        [parent *game-frame*]

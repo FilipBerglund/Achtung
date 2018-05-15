@@ -63,15 +63,15 @@
              (send curve-dc set-pen curve_color curve_size 'solid)
              (send curve-dc draw-line x-pos y-pos (+ x-pos x-vel) (+ y-pos y-vel))
              (send curve-dc set-pen black 1 'solid)
-             (send curve-dc draw-point
-                   (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos (- angle (/ pi 3))))))
-                   (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (- angle (/ pi 3)))))))
-             (send curve-dc draw-point
-                   (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos (+ angle (/ pi 3))))))
-                   (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (+ angle (/ pi 3)))))))
-             (send curve-dc draw-point
-                   (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos angle))))
-                   (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin angle)))))
+             ;             (send curve-dc draw-point
+             ;                   (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos (- angle (/ pi 3))))))
+             ;                   (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (- angle (/ pi 3)))))))
+             ;             (send curve-dc draw-point
+             ;                   (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos (+ angle (/ pi 3))))))
+             ;                   (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (+ angle (/ pi 3)))))))
+             ;             (send curve-dc draw-point
+             ;                   (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos angle))))
+             ;                   (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin angle)))))
              (send dc draw-bitmap *curve-bitmap* 0 0 'solid)
              (set! collision-off #f))))
     
@@ -113,10 +113,10 @@
           (send another-object apply-on-hit-effect this))))
 
     (define/public (update-pos) ;;Updates position.
-      (when (or (< 800 (+ x-pos x-vel))
-                (> curve_size (+ x-pos x-vel));Because the collisions detection is dependent on the curve_size this has to be so too.
-                (< 600 (+ y-pos y-vel))
-                (> curve_size (+ y-pos y-vel)))
+      (when (or (< 790 (+ x-pos x-vel))
+                (> 20 (+ x-pos x-vel));Because the collisions detection is dependent on the curve_size this has to be so too.
+                (< 590 (+ y-pos y-vel))
+                (> 20 (+ y-pos y-vel)))
         (set! dead #t))
       (unless dead
         (set! x-pos (+ x-pos x-vel))
@@ -127,13 +127,14 @@
 
     (define/public (set-size! x)
       (set! curve_size x))
-    
+    (define/public (died?)
+      (died))
     (define died
       (let ((prev #f))
         (lambda ()
-          (if (equal? #f prev)
-              4
-              (set! prev #t)))))
+          (cond ((equal? dead prev) #f)
+                ((not dead) (set! prev dead) #f)
+                (else (set! prev dead) #t)))))   
     
     (define/public (get-x-vel)
       x-vel)
@@ -151,6 +152,8 @@
       angle)
     (define/public (get-size)
       curve_size)
+    (define/public (get-color)
+      curve_color)
     (define/public (clear-dc)
       (send curve-dc erase))
     (define/public (set-dead! x)
@@ -159,7 +162,10 @@
       (set! collision-off x))
     (define/public (set-hole! x)
       (set! hole x))
-    
+    (define/public (addscore)
+      (set! score (add1 score)))
+    (define/public (get-score)
+      score)
     (define/public (new-round)
       [set! x-pos (random 200 600)]
       [set! y-pos (random 200 400)]

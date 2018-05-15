@@ -13,7 +13,7 @@
                 [spawn-duration 600]
                 [tmp-duration 600]
                 [affected-curve 1]
-                [powerup-bitmap (make-object bitmap% 800 600 #f 0.5)]
+                [powerup-bitmap (make-object bitmap% 850 650 #f 0.5)]
                 [powerup-dc (new bitmap-dc% [bitmap powerup-bitmap])])
 
     (define/public (new-round)
@@ -71,6 +71,7 @@
            [notify-callback effect-loop]))
     
     (define/public (apply-on-hit-effect curve)
+      (unless (send curve dead?)
       (set! tmp-duration effect-duration)
       (send powerup-clock start 10 #f)
       (set! affected-curve curve)
@@ -78,7 +79,7 @@
       (send powerup-dc clear)
       (set! x-pos (random 100 700))
       (set! y-pos (random 100 500))
-      (set! spawn-countdown (random rarity (+ rarity 300))))
+      (set! spawn-countdown (random rarity (+ rarity 300)))))
     (super-new)))
 
 (define speed-powerup%
