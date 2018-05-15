@@ -10,12 +10,12 @@
      left
      right
      curve_color
-     [collition-off #f]
+     [collision-off #f]
      [hole #f]
      [curve_size 7]
-     [collition-color1 (new color%)]
-     [collition-color2 (new color%)]
-     [collition-color3 (new color%)]
+     [collision-color1 (new color%)]
+     [collision-color2 (new color%)]
+     [collision-color3 (new color%)]
      [x-pos (random 200 600)] ;When initiated becomes the staring pos then it's the current pos.
      [y-pos (random 200 400)]
      [x-vel 0]
@@ -58,7 +58,7 @@
              (send dc set-pen curve_color curve_size 'solid)
              (send dc draw-ellipse x-pos y-pos 2 2)
              (send dc draw-bitmap *curve-bitmap* 0 0 'solid) ;;Without this it draws the above on the curve, this undoes that.
-             (set! collition-off #t));You can't collide with other things when you are a hole.
+             (set! collision-off #t));You can't collide with other things when you are a hole.
             (else
              (send curve-dc set-pen curve_color curve_size 'solid)
              (send curve-dc draw-line x-pos y-pos (+ x-pos x-vel) (+ y-pos y-vel))
@@ -67,13 +67,13 @@
                    (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos (- angle (/ pi 3))))))
                    (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (- angle (/ pi 3)))))))
              (send curve-dc draw-point
-                   (float->int (+ x-pos (* (+ (/ curve_size 2) 1) (cos (+ angle (/ pi 3))))))
-                   (float->int (+ y-pos (* (+ (/ curve_size 2) 1) (sin (+ angle (/ pi 3)))))))
+                   (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos (+ angle (/ pi 3))))))
+                   (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (+ angle (/ pi 3)))))))
              (send curve-dc draw-point
-                   (float->int (+ x-pos (* (+ (/ curve_size 2) 1) (cos angle))))
-                   (float->int (+ y-pos (* (+ (/ curve_size 2) 1) (sin angle)))))
+                   (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos angle))))
+                   (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin angle)))))
              (send dc draw-bitmap *curve-bitmap* 0 0 'solid)
-             (set! collition-off #f))))
+             (set! collision-off #f))))
     
     (define/public (dead?)
       dead)
@@ -86,35 +86,35 @@
       (set! y-vel (* speed (sin angle))))
 
     ;Not pretty I know.
-    (define/public (get-collition-on?)
-      (not collition-off))
+    (define/public (get-collision-on?)
+      (not collision-off))
     
     (define/public (apply-on-hit-effect x)
-      (when (send x get-collition-on?)
+      (when (send x get-collision-on?)
         (send x set-dead! #t)))
     
     ;Checks if the curve will collide with another-curve. It does this by looking at the other curvs *curve-bitmap* and if that is colored.
-    (define/public (collition? another-object)
-      ;Gets the color of the pixel where this curve wants to move too. The curve_size fixes the issue of the collition getting triggered when the speed gets to low or not triggered when the speed is to high.
+    (define/public (collision? another-object)
+      ;Gets the color of the pixel where this curve wants to move too. The curve_size fixes the issue of the collision getting triggered when the speed gets to low or not triggered when the speed is to high.
       (unless dead
         (send (send another-object get-bitmap-dc) get-pixel
               (float->int (+ x-pos (* (+ (/ curve_size 1.7) 2) (cos angle))))
-              (float->int (+ y-pos (* (+ (/ curve_size 1.7) 2) (sin angle)))) collition-color1)
+              (float->int (+ y-pos (* (+ (/ curve_size 1.7) 2) (sin angle)))) collision-color1)
         (send (send another-object get-bitmap-dc) get-pixel
               (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos (+ angle (/ pi 3))))))
-              (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (+ angle (/ pi 3)))))) collition-color2)
+              (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (+ angle (/ pi 3)))))) collision-color2)
         (send (send another-object get-bitmap-dc) get-pixel
               (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos (- angle (/ pi 3))))))
-              (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (- angle (/ pi 3)))))) collition-color3)
-        ;If it's a non white pixel it dies, unless the collition is off. Also, it can't move beyond the screen.
-        (when (or (not (white? collition-color1))
-                  (not (white? collition-color2))
-                  (not (white? collition-color3)))
+              (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (- angle (/ pi 3)))))) collision-color3)
+        ;If it's a non white pixel it dies, unless the collision is off. Also, it can't move beyond the screen.
+        (when (or (not (white? collision-color1))
+                  (not (white? collision-color2))
+                  (not (white? collision-color3)))
           (send another-object apply-on-hit-effect this))))
 
     (define/public (update-pos) ;;Updates position.
       (when (or (< 800 (+ x-pos x-vel))
-                (> curve_size (+ x-pos x-vel));Because the collitions detection is dependent on the curve_size this has to be so too.
+                (> curve_size (+ x-pos x-vel));Because the collisions detection is dependent on the curve_size this has to be so too.
                 (< 600 (+ y-pos y-vel))
                 (> curve_size (+ y-pos y-vel)))
         (set! dead #t))
@@ -155,8 +155,8 @@
       (send curve-dc erase))
     (define/public (set-dead! x)
       (set! dead x))
-    (define/public (set-collition! x)
-      (set! collition-off x))
+    (define/public (set-collision! x)
+      (set! collision-off x))
     (define/public (set-hole! x)
       (set! hole x))
     

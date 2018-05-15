@@ -23,14 +23,11 @@
     (send dc draw-line 0 0 800 0)
     (send dc draw-line 800 0 800 600)
     (send dc draw-line 0 600 800 600)
-    (send speed-powerup update dc)
-    (send size-powerup update dc)
-    (send clear-powerup update dc)
-    (send collition-powerup update dc)
+    (send players draw-powerups dc)
     (send players update-velocities)
     (send players draw-curves dc)
     (send players update-positions)
-    (send players check-collitions)
+    (send players check-collisions)
     (send players check-powerups)
 
     (displayln (- (current-inexact-milliseconds) startTime))))
@@ -57,7 +54,7 @@
        [label "Start"]
        [callback (lambda (button event)
                    (send Start set-label "playing..")
-                   (send game-clock start 8 #f))]))
+                   (send game-clock start 12 #f))]))
 
 (define Pause
   (new button%

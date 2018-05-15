@@ -1,6 +1,6 @@
 #lang racket/gui
 (require "Abstractions.rkt")
-(provide size-powerup% speed-powerup% clear-powerup% collition-powerup%)
+(provide size-powerup% speed-powerup% clear-powerup% collision-powerup%)
 (define powerup%
   (class object%
     (init-field color
@@ -32,7 +32,7 @@
       (send powerup-dc draw-ellipse x-pos y-pos 8 8)
       (send dc draw-bitmap-section powerup-bitmap
             (- x-pos 20) (- y-pos 20)
-            (- x-pos 20) (- y-pos 20) 40 40 'solid))
+            (- x-pos 20) (- y-pos 20) 40 40 'xor))
 
     (define/public (update dc)
       (cond ((equal? spawn-countdown 0)
@@ -132,7 +132,7 @@
       (set! spawn-countdown (random rarity (+ rarity 300))))
     (super-new)))
 
-(define collition-powerup%
+(define collision-powerup%
   (class powerup%
     (inherit-field effect-duration
                    tmp-duration

@@ -9,7 +9,7 @@
                           [color green]))
 (define clear-powerup (new clear-powerup%
                            [color blue]))
-(define collition-powerup (new collition-powerup%
+(define collision-powerup (new collision-powerup%
                                [color yellow]))
 
 (define curves%
@@ -17,7 +17,7 @@
     (init-field
      [number-of-players 4]
      [players (list )]
-     [powerups (list speed-powerup size-powerup clear-powerup collition-powerup)])   ;Number of players, between 2 and 5.
+     [powerups (list speed-powerup size-powerup clear-powerup collision-powerup)])   ;Number of players, between 2 and 5.
 
     (define/public (make-curves)
       (set! players (helper number-of-players)))
@@ -30,11 +30,11 @@
                      [right (list-ref input-keys (+ (* 2 (- number-of-players 1)) 1))])
                 (helper (- number-of-players 1)))))
 
-    (define/public (check-collitions);Checks every possible ordered pair of curves. So it leads to (number-of-curves)^2 function calls..
-      (map (lambda (x) (map (lambda (y) (send x collition? y)) players)) players))
+    (define/public (check-collisions);Checks every possible ordered pair of curves. So it leads to (number-of-curves)^2 function calls..
+      (map (lambda (x) (map (lambda (y) (send x collision? y)) players)) players))
     
     (define/public (check-powerups)
-      (map (lambda (x) (map (lambda (y) (send x collition? y)) powerups)) players))
+      (map (lambda (x) (map (lambda (y) (send x collision? y)) powerups)) players))
     
     (define/public (update-positions)
       (map (lambda (x) (send x update-pos)) players))
@@ -51,6 +51,8 @@
     (define/public (new-round)
       (map (lambda (x) (send x new-round)) (append powerups players)))
     
+    (define/public (draw-powerups dc)
+      (map (lambda (x) (send x update dc)) powerups))
     (super-new)))
 
 
