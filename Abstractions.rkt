@@ -18,7 +18,9 @@
 (define blue (make-object color% 0 0 255))
 (define green (make-object color% 0 255 0))
 (define yellow (make-object color% 255 255 0))
+(define black (make-object color% 0 0 0))
 (define color-list
   (list red blue green yellow))
 
-(define input-keys (list #\q #\w #\p #\å #\n #\m #\x #\c))
+(define input-keys (list #\q #\w #\p #\å #\n #\m #\x #\c #\t #\y))
+
