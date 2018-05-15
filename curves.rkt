@@ -1,15 +1,23 @@
 #lang racket/gui
 (provide (all-defined-out))
 (require "curve.rkt")
+(require "powerup.rkt")
 (require "Abstractions.rkt")
+(define speed-powerup (new speed-powerup%
+                           [color red]))
+(define size-powerup (new size-powerup%
+                          [color green]))
+(define clear-powerup (new clear-powerup%
+                           [color blue]))
+(define collition-powerup (new collition-powerup%
+                               [color yellow]))
 
-
-;(define red (make-object color% 255 0 0))
 (define curves%
   (class object%
     (init-field
      [number-of-players 4]
-     [players (list )])   ;Number of players, between 2 and 5.
+     [players (list )]
+     [powerups (list speed-powerup size-powerup clear-powerup collition-powerup)])   ;Number of players, between 2 and 5.
 
     (define/public (make-curves)
       (set! players (helper number-of-players)))
@@ -25,6 +33,9 @@
     (define/public (check-collitions);Checks every possible ordered pair of curves. So it leads to (number-of-curves)^2 function calls..
       (map (lambda (x) (map (lambda (y) (send x collition? y)) players)) players))
     
+    (define/public (check-powerups)
+      (map (lambda (x) (map (lambda (y) (send x collition? y)) powerups)) players))
+    
     (define/public (update-positions)
       (map (lambda (x) (send x update-pos)) players))
     
@@ -33,10 +44,13 @@
     
     (define/public (draw-curves dc)
       (map (lambda (x) (send x draw-curve dc)) players))
+    
     (define/public (calculate-score)
       (map (lambda (x) (send x dead?)) players))
+    
     (define/public (new-round)
-      (map (lambda (x) (send x new-round)) players))
+      (map (lambda (x) (send x new-round)) (append powerups players)))
+    
     (super-new)))
 
 
