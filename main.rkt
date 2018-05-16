@@ -6,24 +6,19 @@
 (define black (make-object color% 0 0 0))
 
 (define players (new curves%
-                     [number-of-players 2]))
+                     [number-of-players 5]))
 (send players make-curves)
 
 ;;The main window
 (define *game-frame* (new frame%
                           (label "Achtung, die Kurve!")
-                          (height 1080)
-                          (width 1920)))
+                          (height 710)
+                          (width 1050)))
 (send *game-frame* show #t)
-
-(define (scoreboard)
-  (list 2 ))
-
 
 (define (drawing-proc canvas dc)
   (let ([startTime (current-inexact-milliseconds)])
-
-    (send dc set-pen black 15 'solid)
+    (send dc set-pen white 15 'solid)
     (send dc draw-line 10 600 10 10)
     (send dc draw-line 10 10 800 10)
     (send dc draw-line 800 10 800 600)
@@ -35,9 +30,6 @@
     (send players check-collisions)
     (send players check-powerups)
     (send players display-score dc)
-    (send dc set-brush red 'transparent)
-    ;(send (send *game-window* get-dc) draw-text "qweqwe" 850 40)
-    ;(send (send *game-window* get-dc) draw-text "qweqwe" 850 200)
     (send players end-round? dc game-clock)
     ;(displayln (- (current-inexact-milliseconds) startTime))
     ))
@@ -47,7 +39,7 @@
   (new special-canvas%
        [parent *game-frame*]
        [paint-callback drawing-proc]))
-
+(send *game-window* set-canvas-background black)
 ;Updates the game
 (define (*render-fn*)
   (send *game-window* refresh-now))
