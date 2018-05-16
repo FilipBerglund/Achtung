@@ -19,12 +19,8 @@
 (define green (make-object color% 0 255 0))
 (define yellow (make-object color% 255 255 0))
 (define black (make-object color% 0 0 0))
-(define name-list
-  (list "red" "blue" "green" "yellow" "black"))
 (define color-list
-  (list red blue green yellow black))
+  (list red blue green yellow))
 
 (define input-keys (list #\q #\w #\p #\å #\n #\m #\x #\c #\t #\y))
 
-(define scoreboard-positions
-  (list 40 80 120 160 200))

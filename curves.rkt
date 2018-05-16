@@ -20,15 +20,16 @@
      [powerups (list speed-powerup size-powerup clear-powerup collision-powerup)])   ;Number of players, between 2 and 5.
 
     (define/public (make-curves)
-      (set! players (helper number-of-players)))
-    (define (helper number-of-players)
+      (set! players (creator number-of-players)))
+    (define (creator number-of-players)
       (if (equal? number-of-players 0)
           '()
           (cons (new curve%
+                     [name (list-ref name-list (- number-of-players 1))]
                      [curve_color (list-ref color-list (- number-of-players 1))] ;Every curve gets it's own color.
                      [left  (list-ref input-keys (* 2 (- number-of-players 1)))] ;Every curve gets it's own controls.
                      [right (list-ref input-keys (+ (* 2 (- number-of-players 1)) 1))])
-                (helper (- number-of-players 1)))))
+                (creator (- number-of-players 1)))))
 
     (define/public (check-collisions);Checks every possible ordered pair of curves. So it leads to (number-of-curves)^2 function calls..
       (map (lambda (x) (map (lambda (y) (send x collision? y)) players)) players))
@@ -60,11 +61,23 @@
                                   (send y addscore)))
                               players)))
            players))
+
+    ;Displays the current score and sorts it with the person with the higest score at the top.
     (define/public (display-score dc)
       (calc-score)
+      (let ((position 1)
+            (sorted-players players))
+        (set! sorted-players (sort players #:key (lambda (x) (send x get-score)) >))
       (map (lambda (x)
-             (send dc set-brush red 'transparent)
-             (send dc draw-text (number->string (send x get-score))
-                   (send x get-x-pos)
-                   (- (send x get-y-pos) 30))) players))
+             (send dc draw-text (string-join (list (send x get-name)
+                                                   (number->string (send x get-score))))
+                   850 (* 40 position))
+             (set! position (add1 position))) sorted-players)))
+    (define/public (end-round? dc clock)
+      (let ((dead-players 0))
+      (map (lambda (x) (when (send x dead?) (set! dead-players (add1 dead-players)))
+             (when (equal? (add1 dead-players) number-of-players)
+               (send dc draw-text "ROUND OVER" 350 300)
+               (send clock stop))) players)))
+                                                                        
     (super-new)))
