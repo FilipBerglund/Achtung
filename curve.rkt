@@ -13,11 +13,14 @@
      curve_color
      [collision-off #f]
      [hole #f]
+     [hole-counter -80];Makes the curves start as a hole,
+     ;this way you avoid collitions before you have time to do anything.
      [curve_size 7]
      [collision-color1 (new color%)]
      [collision-color2 (new color%)]
      [collision-color3 (new color%)]
-     [x-pos (random 200 600)] ;When initiated becomes the staring pos then it's the current pos.
+     ;When initiated becomes the staring pos then it's the current pos.
+     [x-pos (random 200 600)]
      [y-pos (random 200 400)]
      [x-vel 0]
      [y-vel 0]
@@ -25,12 +28,11 @@
      [dead #f]
      [angle (random 0 1000)]
      [score 0]
-     [*curve-bitmap* (make-object bitmap% 800 600 #f 0.5)])
+     ;The curve keeps track of where it is and has been.
+     ;These are also used to draw to the canvas through the canvas dc.
+     [*curve-bitmap* (make-object bitmap% 800 600 #f 0.5)]
+     [curve-dc (new bitmap-dc% [bitmap *curve-bitmap*])])
 
-
-    ;The curve keeps track of where it is and has been. These are also used to draw to the canvas through the canvas dc.
-    (define curve-dc (new bitmap-dc% [bitmap *curve-bitmap*]))
-    ;(send curve-dc set-pen curve_color curve_size 'xor)
 
     ;So that other curves can check where others have been.
     (define/public (get-bitmap-dc)
@@ -38,18 +40,17 @@
 
     ;This is called everytime the curve is drawn, after a random number of frames the curve stops drawing itself for a set number of frames.
     (define hole?
-      (let ((count 8)
-            (length 20))
+      (let ((length 20))
         (lambda ()
-          (cond (hole (set! count 20) #t)
-                ((< count 20)
-                 (set! count (add1 count))
+          (cond (hole (set! hole-counter 20) #t)
+                ((< hole-counter 12)
+                 (set! hole-counter (add1 hole-counter))
                  #t) ;;Defines the length of the hole
-                ((< count length)
-                 (set! count (add1 count))
+                ((< hole-counter length)
+                 (set! hole-counter (add1 hole-counter))
                  #f)
                 (else (set! length (random 80 160));;Defines the length between the holes.
-                      (set! count 0))))))
+                      (set! hole-counter 0))))))
 
     ;Draws the new part of the curve to the canvas.
     (define/public (draw-curve dc)
@@ -81,8 +82,8 @@
 
     ;This allows for the user to control the curve by changing its direction through changing the angle of the velocity.
     (define/public (update-vel)
-      (cond ((key-down? left) (set! angle (- angle (* 0.017 speed)))) ;For each frame a key is pressed the angle of the velocity changes.
-            ((key-down? right) (set! angle (+ angle (* 0.017 speed))))) ;The speed multiplier makes the turn radius about the same regardless of the speed.
+      (cond ((key-down? left) (set! angle (- angle (* 0.018 speed)))) ;For each frame a key is pressed the angle of the velocity changes.
+            ((key-down? right) (set! angle (+ angle (* 0.018 speed))))) ;The speed multiplier makes the turn radius about the same regardless of the speed.
       (set! x-vel (* speed (cos angle))) ;Makes the speed constant regardless of the direction.
       (set! y-vel (* speed (sin angle))))
 
@@ -125,7 +126,6 @@
 
     (define/public (set-speed! x)
       (set! speed x))
-
     (define/public (set-size! x)
       (set! curve_size x))
     (define/public (died?)
@@ -174,5 +174,6 @@
       [set! y-pos (random 200 400)]
       [set! angle (random 0 1000)]
       [set! dead #f]
-      [send curve-dc erase])
+      [send curve-dc erase]
+      [set! hole-counter -80])
     (super-new)))

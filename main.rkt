@@ -5,8 +5,9 @@
 (require "Abstractions.rkt")
 (define black (make-object color% 0 0 0))
 
+
 (define players (new curves%
-                     [number-of-players 5]))
+                     [number-of-players 2]))
 (send players make-curves)
 
 ;;The main window
@@ -28,10 +29,11 @@
     (send players draw-curves dc)
     (send players update-positions)
     (send players check-collisions)
-    (send players check-powerups)
+    
     (send players display-score dc)
     (send players end-round? dc game-clock)
-    ;(displayln (- (current-inexact-milliseconds) startTime))
+    (displayln (- (current-inexact-milliseconds) startTime))
+    (send players check-powerups)
     ))
 
 ;This is where the game is played
@@ -58,14 +60,14 @@
                    (send *game-window* focus)
                    (send Start set-label "playing..")
                    (send game-clock start 12 #f))]))
-(define Pause
-  (new button%
-       [parent *game-frame*]
-       [label "Pause"]
-       [callback (lambda (button event)
-                   (send Pause set-label "Paused..")
-                   (send Start set-label "Restart")
-                   (send game-clock stop))]))
+;(define Pause
+;  (new button%
+;       [parent *game-frame*]
+;       [label "Pause"]
+;       [callback (lambda (button event)
+;                   (send Pause set-label "Paused..")
+;                   (send Start set-label "Restart")
+;                   (send game-clock stop))]))
 
 (define New-round
   (new button%

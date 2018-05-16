@@ -32,7 +32,7 @@
       (send powerup-dc draw-ellipse x-pos y-pos 8 8)
       (send dc draw-bitmap-section powerup-bitmap
             (- x-pos 20) (- y-pos 20)
-            (- x-pos 20) (- y-pos 20) 40 40 'xor))
+            (- x-pos 20) (- y-pos 20) 40 40 'solid))
 
     (define/public (update dc)
       (cond ((equal? spawn-countdown 0)
@@ -72,14 +72,14 @@
     
     (define/public (apply-on-hit-effect curve)
       (unless (send curve dead?)
-      (set! tmp-duration effect-duration)
-      (send powerup-clock start 10 #f)
-      (set! affected-curve curve)
-      (send affected-curve set-size! 20)
-      (send powerup-dc clear)
-      (set! x-pos (random 100 700))
-      (set! y-pos (random 100 500))
-      (set! spawn-countdown (random rarity (+ rarity 300)))))
+        (set! tmp-duration effect-duration)
+        (send powerup-clock start 10 #f)
+        (set! affected-curve curve)
+        (send affected-curve set-size! 20)
+        (send powerup-dc clear)
+        (set! x-pos (random 100 700))
+        (set! y-pos (random 100 500))
+        (set! spawn-countdown (random rarity (+ rarity 300)))))
     (super-new)))
 
 (define speed-powerup%

@@ -62,6 +62,11 @@
                               players)))
            players))
 
+    (define/public (make-holes)
+      (map (lambda (x) (send x set-hole! #t)) players))
+    (define/public (stop-holes)
+      (map (lambda (x) (send x set-hole! #f)) players))
+
     ;Displays the current score and sorts it with the person with the higest score at the top.
     (define/public (display-score dc)
       (calc-score)
@@ -69,6 +74,7 @@
         (set! players (sort players #:key (lambda (x) (send x get-score)) >))
         (map (lambda (x)
                (send dc set-text-foreground (send x get-color))
+               (send dc set-font a-font)
                (send dc draw-text (string-join (list (send x get-name)
                                                      (number->string (send x get-score)) "pt"))
                      850 (* 40 position))
