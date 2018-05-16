@@ -71,7 +71,7 @@
            [notify-callback effect-loop]))
     
     (define/public (apply-on-hit-effect curve)
-      (unless (send curve dead?)
+      (unless (send curve get-dead)
         (set! tmp-duration effect-duration)
         (send powerup-clock start 10 #f)
         (set! affected-curve curve)

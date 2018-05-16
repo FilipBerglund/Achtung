@@ -3,6 +3,8 @@
 (require "curves.rkt")
 (require "powerup.rkt")
 (require "Abstractions.rkt")
+(require "keyhandler.rkt")
+
 (define black (make-object color% 0 0 0))
 
 
@@ -29,12 +31,10 @@
     (send players draw-curves dc)
     (send players update-positions)
     (send players check-collisions)
-    
     (send players display-score dc)
     (send players end-round? dc game-clock)
     (displayln (- (current-inexact-milliseconds) startTime))
-    (send players check-powerups)
-    ))
+    (send players check-powerups)))
 
 ;This is where the game is played
 (define *game-window*

@@ -6,7 +6,12 @@
 (define (float->int x)
   (inexact->exact (round x)))
 
-(define a-font (make-font #:size 29)) 
+(define a-font (make-font #:size 40
+                          #:family 'roman
+                          ;#:face "comic sans"
+                         ; #:weight 'bold
+                          #:style 'italic
+                          #:hinting 'aligned)) 
 
 ;Checks if a color is white
 (define (white? color)

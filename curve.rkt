@@ -54,8 +54,7 @@
 
     ;Draws the new part of the curve to the canvas.
     (define/public (draw-curve dc)
-      (cond (dead (send dc draw-bitmap *curve-bitmap* 0 0 'solid)
-                  (send dc set-pen curve_color curve_size 'solid))
+      (cond (dead (send dc draw-bitmap *curve-bitmap* 0 0 'solid))
             ((hole?)
              (send dc set-pen curve_color curve_size 'solid)
              (send dc draw-ellipse x-pos y-pos 2 2)
@@ -64,7 +63,7 @@
             (else
              (send curve-dc set-pen curve_color curve_size 'solid)
              (send curve-dc draw-line x-pos y-pos (+ x-pos x-vel) (+ y-pos y-vel))
-             (send curve-dc set-pen black 1 'solid)
+             ;(send curve-dc set-pen black 1 'solid)
              ;             (send curve-dc draw-point
              ;                   (float->int (+ x-pos (* (+ (/ curve_size 1.7) 1) (cos (- angle (/ pi 3))))))
              ;                   (float->int (+ y-pos (* (+ (/ curve_size 1.7) 1) (sin (- angle (/ pi 3)))))))
@@ -77,7 +76,7 @@
              (send dc draw-bitmap *curve-bitmap* 0 0 'solid)
              (set! collision-off #f))))
     
-    (define/public (dead?)
+    (define/public (get-dead)
       dead)
 
     ;This allows for the user to control the curve by changing its direction through changing the angle of the velocity.
