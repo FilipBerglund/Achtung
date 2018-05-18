@@ -1,38 +1,41 @@
 #lang racket/gui
 (require "Abstractions.rkt")
-(provide size-powerup% speed-powerup% clear-powerup% collision-powerup%)
+(provide size-powerup% speed-powerup% clear-powerup% collision-powerup% super-powerup%)
 (define powerup%
   (class object%
     (init-field color
                 [x-pos (random 100 700)]
                 [y-pos (random 100 500)]
                 [effects (list )]
-                [spawn-countdown (random 1000 1500)]
-                [effect-duration 400]
+                [spawn-countdown (random 1000 1300)]
+                [effect-duration 300]
                 [rarity 1000]
-                [spawn-duration 600]
-                [tmp-duration 600]
-                [affected-curve 1]
+                [spawn-duration 800]
+                [tmp-duration 800]
+                [affected-curve #f]
                 [powerup-bitmap (make-object bitmap% 850 650 #f 0.5)]
                 [powerup-dc (new bitmap-dc% [bitmap powerup-bitmap])])
 
     (define/public (new-round)
-      (set! tmp-duration 10))
+      (set! tmp-duration 2)
+      (send powerup-dc erase)
+      (set! spawn-countdown 0))
     
     (define/public (get-bitmap-dc)
       powerup-dc)
     
-    (define (reset-powerup dc)
+    (define/public (reset-powerup dc)
       (send powerup-dc erase)
       (set! x-pos (random 100 700))
-      (set! y-pos (random 100 500)))
+      (set! y-pos (random 100 500))
+      (send dc draw-bitmap powerup-bitmap 0 0 'solid))
 
     (define/public (draw-powerup dc)
-      (send powerup-dc set-pen color 20 'solid)
-      (send powerup-dc draw-ellipse x-pos y-pos 8 8)
+      (send powerup-dc set-pen color 4 'solid)
+      (send powerup-dc draw-rectangle (- x-pos 10) (- y-pos 10) 20 20)
       (send dc draw-bitmap-section powerup-bitmap
-            (- x-pos 20) (- y-pos 20)
-            (- x-pos 20) (- y-pos 20) 40 40 'solid))
+            (- x-pos 12) (- y-pos 12)
+            (- x-pos 12) (- y-pos 12) 30 30))
 
     (define/public (update dc)
       (cond ((equal? spawn-countdown 0)
@@ -71,15 +74,14 @@
            [notify-callback effect-loop]))
     
     (define/public (apply-on-hit-effect curve)
-      (unless (send curve get-dead)
         (set! tmp-duration effect-duration)
         (send powerup-clock start 10 #f)
         (set! affected-curve curve)
         (send affected-curve set-size! 20)
-        (send powerup-dc clear)
+        (send powerup-dc erase)
         (set! x-pos (random 100 700))
         (set! y-pos (random 100 500))
-        (set! spawn-countdown (random rarity (+ rarity 300)))))
+        (set! spawn-countdown (random rarity (+ rarity 300))))
     (super-new)))
 
 (define speed-powerup%
@@ -107,8 +109,8 @@
       (set! tmp-duration effect-duration)
       (send powerup-clock start 10 #f)
       (set! affected-curve curve)
-      (send affected-curve set-speed! 5)
-      (send powerup-dc clear)
+      (send affected-curve set-speed! 4.5)
+      (send powerup-dc erase)
       (set! x-pos (random 100 700))
       (set! y-pos (random 100 500))
       (set! spawn-countdown (random rarity (+ rarity 300))))
@@ -126,8 +128,8 @@
     
     (define/public (apply-on-hit-effect curve)
       (set! affected-curve curve)
-      (send affected-curve clear-dc)
-      (send powerup-dc clear)
+      (send affected-curve erase-current-dc)
+      (send powerup-dc erase)
       (set! x-pos (random 100 700))
       (set! y-pos (random 100 500))
       (set! spawn-countdown (random rarity (+ rarity 300))))
@@ -159,8 +161,71 @@
       (send powerup-clock start 10 #f)
       (set! affected-curve curve)
       (send affected-curve set-hole! #t)
-      (send powerup-dc clear)
+      (send powerup-dc erase)
       (set! x-pos (random 100 700))
       (set! y-pos (random 100 500))
       (set! spawn-countdown (random rarity (+ rarity 300))))
+    (super-new)))
+
+(define super-powerup%
+  (class powerup%
+    (inherit-field effect-duration
+                   affected-curve
+                   tmp-duration
+                   powerup-dc
+                   color
+                   x-pos
+                   y-pos
+                   powerup-bitmap
+                   spawn-duration
+                   spawn-countdown
+                   rarity)
+    (init-field [affected-curves (list )]
+                [x-pos2 600]
+                [y-pos2 300])
+    
+    (define/override (reset-powerup dc)
+      (send powerup-dc erase)
+      (send dc draw-bitmap powerup-bitmap 0 0 'solid))
+    
+    (define/override (update dc)
+      (cond ((equal? spawn-countdown 0)
+             (reset-powerup dc)
+             (set! spawn-countdown (random rarity (+ rarity 300))))
+            ((< spawn-countdown spawn-duration)
+             (send this draw-powerup dc)
+             ;Now the powerup is on as long as the powerup is displayed on canvas.
+             (set! tmp-duration spawn-countdown)
+             (set! spawn-countdown (sub1 spawn-countdown)))
+            (else
+             (set! spawn-countdown (sub1 spawn-countdown)))))
+
+    (define/override (draw-powerup dc)
+      (send powerup-dc set-pen color 4 'solid)
+      (send powerup-dc draw-rectangle (- x-pos 10) (- y-pos 10) 20 20)
+      (send powerup-dc draw-rectangle (- x-pos2 10) (- y-pos2 10) 20 20)
+      (send dc draw-bitmap powerup-bitmap 0 0 'solid))
+    
+    (define (effect-loop)
+      (set! tmp-duration (- tmp-duration 1))
+      (when (equal? tmp-duration 0)
+        (send powerup-dc erase)
+        (set! spawn-countdown (random rarity (+ rarity 300)))
+        ;(send affected-curve combine-bitmaps)
+        ;(send affected-curve erase-superpowerup-dc)
+        ;(send affected-curve set-current-bitmap&dc-default)
+        (map (lambda (x) (send x combine-bitmaps) (send x erase-superpowerup-dc))
+             affected-curves)
+        (map (lambda (x) (send x set-current-bitmap&dc-default))
+             affected-curves)))
+    
+    (define powerup-clock
+      (new timer%
+           [just-once? #f]
+           [notify-callback effect-loop]))
+    
+    (define/public (apply-on-hit-effect curve)
+        (send powerup-clock start 10 #f)
+        (set! affected-curves (cons curve affected-curves))
+        (send curve set-current-bitmap&dc-superpowerup))
     (super-new)))

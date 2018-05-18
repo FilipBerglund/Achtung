@@ -11,13 +11,24 @@
                            [color blue]))
 (define collision-powerup (new collision-powerup%
                                [color yellow]))
+(define super-powerup (new super-powerup%
+                            [color orange]
+                            [x-pos 200]
+                            [y-pos 300]
+                            [spawn-duration 500]
+                            [effect-duration 500]))
 
-(define curves%
+(define gamestate%
   (class object%
     (init-field
-     [number-of-players 4]
+     [number-of-players 4] ;Number of players, between 2 and 5.
      [players (list )]
-     [powerups (list speed-powerup size-powerup clear-powerup collision-powerup)])   ;Number of players, between 2 and 5.
+     [powerups (list ;speed-powerup
+                     ;size-powerup
+                     clear-powerup
+                     ;collision-powerup
+                     super-powerup
+                     )])   
 
     (define/public (make-curves)
       (set! players (creator number-of-players)))
@@ -80,20 +91,18 @@
                      830 (* 60 position))
                (set! position (add1 position))) players)))
     (define (end-game?)
-      (ormap (lambda (x) (<= (* (- number-of-players 1) 10) (send x get-score))) players))
-                     
+      (ormap (lambda (x) (<= (* (- number-of-players 1) 10) (send x get-score))) players))            
     
     (define/public (end-round? dc clock)
       (let ((dead-players 0))
         (send dc set-text-foreground white)
         (map (lambda (x) (when (send x get-dead) (set! dead-players (add1 dead-players)))
                (cond ((and (end-game?) (equal? (add1 dead-players) number-of-players))
-                      (send dc draw-text "GAME OVER" 350 300)
+                      (send dc draw-text "GAME OVER" 250 240)
                       (send dc draw-text (string-join (list (send (car players) get-name)
-                                                            "WINS!")) 350 340))
+                                                            "WINS!")) 250 290))
                      ((equal? (add1 dead-players) number-of-players)
-                      (send dc draw-text "ROUND OVER" 350 280)
+                      (send dc draw-text "ROUND OVER" 250 280)
                       (send clock stop))))
-             players)))
-                                                                        
+             players)))                                                  
     (super-new)))
