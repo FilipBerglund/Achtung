@@ -4,13 +4,13 @@
 (define powerup%
   (class object%
     (init-field color
-                [x-pos (random 100 700)]
+                [x-pos (random 100 700)];Where the powerup is drawn
                 [y-pos (random 100 500)]
                 [spawn-countdown (random 1000 1300)]
                 [effect-duration 300]
                 [rarity 1000]
                 [spawn-duration 800]
-                [tmp-duration 800]
+                [tmp-duration 800];How long the 
                 [affected-curve #f]
                 [powerup-bitmap (make-object bitmap% 850 650 #f 0.5)]
                 [powerup-dc (new bitmap-dc% [bitmap powerup-bitmap])])
@@ -73,14 +73,14 @@
            [notify-callback effect-loop]))
     
     (define/public (apply-on-hit-effect curve)
-        (set! tmp-duration effect-duration)
-        (send powerup-clock start 10 #f)
-        (set! affected-curve curve)
-        (send affected-curve set-size! 20)
-        (send powerup-dc erase)
-        (set! x-pos (random 100 700))
-        (set! y-pos (random 100 500))
-        (set! spawn-countdown (random rarity (+ rarity 300))))
+      (set! tmp-duration effect-duration)
+      (send powerup-clock start 10 #f)
+      (set! affected-curve curve)
+      (send affected-curve set-size! 20)
+      (send powerup-dc erase)
+      (set! x-pos (random 100 700))
+      (set! y-pos (random 100 500))
+      (set! spawn-countdown (random rarity (+ rarity 300))))
     (super-new)))
 
 (define speed-powerup%
@@ -180,8 +180,8 @@
                    spawn-countdown
                    rarity)
     (init-field [affected-curves (list )]
-                [x-pos2 600]
-                [y-pos2 300])
+                [x-pos2 610]
+                [y-pos2 260])
     
     (define/override (reset-powerup dc)
       (send powerup-dc erase)
@@ -200,9 +200,15 @@
              (set! spawn-countdown (sub1 spawn-countdown)))))
 
     (define/override (draw-powerup dc)
-      (send powerup-dc set-pen color 4 'solid)
-      (send powerup-dc draw-rectangle (- x-pos 10) (- y-pos 10) 20 20)
-      (send powerup-dc draw-rectangle (- x-pos2 10) (- y-pos2 10) 20 20)
+      (send dc set-pen white 5 'solid)
+      (send dc draw-line 810 (* 600 (/ (- effect-duration spawn-countdown) effect-duration)) 810 600)
+      (send powerup-dc set-pen color 4 'xor)
+      (send powerup-dc set-brush black 'xor)
+      (send powerup-dc set-text-foreground white)
+      (send powerup-dc draw-ellipse x-pos y-pos 120 120)
+      (send powerup-dc draw-ellipse x-pos2 y-pos2 120 120)
+      (send powerup-dc draw-text "DOWN" (+ x-pos 33) (+ y-pos 51))
+      (send powerup-dc draw-text "UP" (+ x-pos2 48) (+ y-pos2 51))
       (send dc draw-bitmap powerup-bitmap 0 0 'solid))
     
     (define (effect-loop)
@@ -221,7 +227,9 @@
            [notify-callback effect-loop]))
     
     (define/public (apply-on-hit-effect curve)
-        (send powerup-clock start 10 #f)
-        (set! affected-curves (cons curve affected-curves))
-        (send curve set-current-bitmap&dc-superpowerup))
+      (send powerup-clock start 10 #f)
+      (set! affected-curves (cons curve affected-curves))
+      (if (< (send curve get-x-pos) 300)
+          (send curve set-current-bitmap&dc-superpowerup)
+          (send curve set-current-bitmap&dc-default)))
     (super-new)))

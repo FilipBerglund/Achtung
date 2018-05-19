@@ -5,16 +5,8 @@
 (require "Abstractions.rkt")
 (require "keyhandler.rkt")
 
-(define black (make-object color% 0 0 0))
-
-(define curve-bitmap (make-object bitmap% 800 600 #f 0.2))
-(define curve-dc (new bitmap-dc% [bitmap curve-bitmap]))
-(send curve-dc set-pen black 5 'solid)
-(send curve-dc set-brush black 'solid)
-(send curve-dc draw-rectangle 0 0 800 600)
-
 (define players (new gamestate%
-                     [number-of-players 2]))
+                     [number-of-players 1]))
 (send players make-curves)
 
 ;;The main window
@@ -34,7 +26,7 @@
 
 (define (drawing-proc canvas dc)
   ;(let ([startTime (current-inexact-milliseconds)])
-  (send dc draw-bitmap curve-bitmap 0 0 'solid)
+  ;(send dc draw-bitmap curve-bitmap 0 0 'solid)
   (draw-playingfield-frame dc)
   (send players update-velocities)
   (send players draw-powerups dc)
@@ -43,8 +35,8 @@
   (send players check-collisions)
   (send players display-score dc)
   (send players end-round/game? dc game-clock)
-  ;(displayln (- (current-inexact-milliseconds) startTime))
   (send players check-powerups))
+;(displayln (- (current-inexact-milliseconds) startTime)))
 
 ;This is where the game is played
 (define *game-window*

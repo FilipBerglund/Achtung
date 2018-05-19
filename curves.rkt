@@ -13,10 +13,10 @@
                                [color yellow]))
 (define super-powerup (new super-powerup%
                            [color orange]
-                           [x-pos 200]
-                           [y-pos 300]
-                           [spawn-duration 500]
-                           [effect-duration 500]))
+                           [x-pos 90]
+                           [y-pos 260]
+                           [spawn-duration 1000]
+                           [effect-duration 1000]))
 
 (define gamestate%
   (class object%
