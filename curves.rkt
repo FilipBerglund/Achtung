@@ -45,11 +45,11 @@
     ;Checks every possible ordered pair of curves.
     ;So it leads to (number-of-curves)^2 function calls..
     (define/public (check-collisions)
-      (map (lambda (x) (map (lambda (y) (send x collision? y)) players)) players))
+      (map (lambda (x) (map (lambda (y) (send x collision? y (send x get-bitmap-level))) players)) players))
 
     ;Checks collitions with powerups. Works even when collition is off.
     (define/public (check-powerups)
-      (map (lambda (x) (map (lambda (y) (send x collision? y)) powerups)) players))
+      (map (lambda (x) (map (lambda (y) (send x collision? y (send x get-bitmap-level))) powerups)) players))
 
     (define/public (update-positions)
       (map (lambda (x) (send x update-pos)) players))
@@ -59,6 +59,9 @@
 
     (define/public (draw-curves dc)
       (map (lambda (x) (send x draw-curve dc)) players))
+
+    (define/public (reset-scores!)
+      (map (lambda (x) (send x reset-score!)) players))
 
     ;Resets the relevant variables and removes powerups from curves.
     (define/public (new-round)
@@ -75,29 +78,30 @@
                                   (send y addscore)))
                               players)))
            players))
-
-    ;    ;Makes every curve to a hole.
-    ;    (define/public (make-holes)
-    ;      (map (lambda (x) (send x set-hole! #t)) players))
     
     (define/public (stop-holes)
       (map (lambda (x) (send x set-hole! #f)) players))
 
-    ;Displays the current score and sorts it with the person with the highest score at the top.
+    ;Displays the current score on dc and sorts it with the person with the highest
+    ;score at the top.
     (define/public (display-score dc)
       (calc-score)
       (let ((position 1))
+        ;Sorts the players based on score.
         (set! players (sort players #:key (lambda (x) (send x get-score)) >))
         (map (lambda (x)
                (send dc set-text-foreground (send x get-color))
                (send dc set-font a-font)
                (send dc draw-text
-                     (string-join (list ;(send x get-name)
-                                   (number->string (send x get-score)) "pt"))
+                     (string-join (list
+                                   (number->string (send x get-score))
+                                   (if (equal? (send x get-score) 1)
+                                       "pt"
+                                       "pts")))
                      830 (* 60 position))
                (set! position (add1 position))) players)))
     
-    ;The game is over when one curve get enough points. 
+    ;The game is over when one curve get enough points.
     (define (game-over?)
       (ormap (lambda (x) (<= (* (sub1 number-of-players) 10) (send x get-score)))
              players))

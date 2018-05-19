@@ -14,7 +14,7 @@
 (send curve-dc draw-rectangle 0 0 800 600)
 
 (define players (new gamestate%
-                     [number-of-players 1]))
+                     [number-of-players 2]))
 (send players make-curves)
 
 ;;The main window
@@ -33,18 +33,18 @@
 
 
 (define (drawing-proc canvas dc)
-  (let ([startTime (current-inexact-milliseconds)])
-    (send dc draw-bitmap curve-bitmap 0 0 'solid)
-    (draw-playingfield-frame dc)
-    (send players update-velocities)
-    (send players draw-powerups dc)
-    (send players draw-curves dc)
-    (send players update-positions)
-    (send players check-collisions)
-    (send players display-score dc)
-    (send players end-round/game? dc game-clock)
-    (displayln (- (current-inexact-milliseconds) startTime))
-    (send players check-powerups)))
+  ;(let ([startTime (current-inexact-milliseconds)])
+  (send dc draw-bitmap curve-bitmap 0 0 'solid)
+  (draw-playingfield-frame dc)
+  (send players update-velocities)
+  (send players draw-powerups dc)
+  (send players draw-curves dc)
+  (send players update-positions)
+  (send players check-collisions)
+  (send players display-score dc)
+  (send players end-round/game? dc game-clock)
+  ;(displayln (- (current-inexact-milliseconds) startTime))
+  (send players check-powerups))
 
 ;This is where the game is played
 (define *game-window*
@@ -87,3 +87,13 @@
                    (send players new-round)
                    (send game-clock start 12 #f)
                    (send *game-window* focus))]))
+
+(define New-game
+  (new button%
+       [parent *game-frame*]
+       [label "NEW GAME"]
+       [callback (lambda (botton event)
+                   (send players new-round)
+                   (send game-clock start 12 #f)
+                   (send *game-window* focus)
+                   (send players reset-scores!))]))

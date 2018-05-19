@@ -6,7 +6,6 @@
     (init-field color
                 [x-pos (random 100 700)]
                 [y-pos (random 100 500)]
-                [effects (list )]
                 [spawn-countdown (random 1000 1300)]
                 [effect-duration 300]
                 [rarity 1000]
@@ -21,9 +20,8 @@
       (send powerup-dc erase)
       (set! spawn-countdown 0))
     
-    (define/public get-bitmap-dc
-      (lambda x
-      powerup-dc))
+    (define/public (get-bitmap-dc bitmap-level)
+      powerup-dc)
     
     (define/public (reset-powerup dc)
       (send powerup-dc erase)
@@ -212,9 +210,6 @@
       (when (equal? tmp-duration 0)
         (send powerup-dc erase)
         (set! spawn-countdown (random rarity (+ rarity 300)))
-        ;(send affected-curve combine-bitmaps)
-        ;(send affected-curve erase-superpowerup-dc)
-        ;(send affected-curve set-current-bitmap&dc-default)
         (map (lambda (x) (send x combine-bitmaps) (send x erase-superpowerup-dc))
              affected-curves)
         (map (lambda (x) (send x set-current-bitmap&dc-default))

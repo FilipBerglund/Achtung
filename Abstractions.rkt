@@ -11,7 +11,7 @@
                           #:style 'italic
                           #:hinting 'aligned)) 
 
-;Checks if a color is white.
+;Checks if a color% is white, returns a boolean.
 (define (white? color)
   (not
    (or (not (equal? (send color red) 255))
@@ -27,8 +27,10 @@
 (define black (make-object color% 0 0 0))
 (define purple (make-object color% 235 61 184))
 (define white (make-object color% 255 255 255))
+
 (define name-list
   (list "Red" "Yellow" "Orange" "Green" "Purple"))
+
 (define color-list
   (list red yellow orange green purple))
 
