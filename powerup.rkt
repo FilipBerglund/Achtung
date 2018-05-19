@@ -21,8 +21,9 @@
       (send powerup-dc erase)
       (set! spawn-countdown 0))
     
-    (define/public (get-bitmap-dc)
-      powerup-dc)
+    (define/public get-bitmap-dc
+      (lambda x
+      powerup-dc))
     
     (define/public (reset-powerup dc)
       (send powerup-dc erase)

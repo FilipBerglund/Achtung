@@ -36,14 +36,13 @@
      [current-bitmap curve-bitmap]
      [current-dc curve-dc])
     
-    (send curve-dc set-pen curve_color curve-size 'solid)
-    (send superpowerup-dc set-pen red curve-size 'solid)
-    (send superpowerup-dc set-alpha 0.1)
+    (send superpowerup-dc set-alpha 0.2)
     ;So that other curves can check where others have been.
-    (define/public (get-bitmap-dc)
-      current-dc)
+    (define/public get-bitmap-dc
+      (lambda x current-dc))
 
-    ;This is called everytime the curve is drawn, after a random number of frames the curve stops drawing itself for a set number of frames.
+    ;This is called everytime the curve is drawn, after a random number of
+    ;frames the curve stops drawing itself for a set number of frames.
     (define hole?
       (let ((length 20))
         (lambda ()
@@ -54,21 +53,28 @@
                 ((< hole-counter length)
                  (set! hole-counter (add1 hole-counter))
                  #f)
-                (else (set! length (random 60 180));;Defines the length between the holes.
+                (else (set! length (random 60 180));;Defines the length
+                      ;between the holes.
                       (set! hole-counter 0))))))
 
     ;Draws the new part of the curve to the canvas.
     (define/public (draw-curve dc)
       (cond (dead (send dc draw-bitmap curve-bitmap 0 0 'solid)
-                  (send dc draw-bitmap superpowerup-bitmap 0 0 'solid))
+                  (send dc draw-bitmap superpowerup-bitmap 0 0 'solid)
+                  (send dc set-pen curve_color curve-size 'solid)
+                  (send dc draw-ellipse x-pos y-pos 2 2))
             ((hole?)
              (send dc set-pen curve_color curve-size 'solid)
+             (send curve-dc set-pen curve_color curve-size 'solid);Change!
+             (send superpowerup-dc set-pen curve_color curve-size 'solid);Change!
              (send dc draw-ellipse x-pos y-pos 2 2)
              (send dc draw-bitmap curve-bitmap 0 0 'solid)
              (send dc draw-bitmap superpowerup-bitmap 0 0 'solid)
              ;;Without this it draws the above on the curve, this undoes that.
              (set! collision-off #t));You can't collide with other things when you are a hole.
             (else
+             (send curve-dc set-pen curve_color curve-size 'solid);Change!
+             (send superpowerup-dc set-pen curve_color curve-size 'solid);Change!
              (send current-dc draw-line x-pos y-pos (+ x-pos x-vel) (+ y-pos y-vel))
              ;(send curve-dc set-pen black 1 'solid)
              ;             (send curve-dc draw-point
@@ -82,8 +88,6 @@
              ;                   (float->int (+ y-pos (* (+ (/ curve-size 1.7) 1) (sin angle)))))
              (send dc draw-bitmap curve-bitmap 0 0 'solid)
              (send dc draw-bitmap superpowerup-bitmap 0 0 'solid)
-             ;(set! current-bitmap curve-bitmap)
-             ;(set! current-dc curve-dc)
              (set! collision-off #f))))
     
     (define/public (get-dead)
@@ -124,8 +128,9 @@
           (send another-object apply-on-hit-effect this))))
 
     (define/public (update-pos) ;;Updates position.
+      ;Because the collisions detection is dependent on the curve-size this has to be so too.
       (when (or (< 797 (+ (+ x-pos x-vel) (/ curve-size 2)))
-                (> 13  (- (+ x-pos x-vel) (/ curve-size 2)));Because the collisions detection is dependent on the curve-size this has to be so too.
+                (> 13  (- (+ x-pos x-vel) (/ curve-size 2)))
                 (< 597 (+ (+ y-pos y-vel) (/ curve-size 2)))
                 (> 13  (- (+ y-pos y-vel) (/ curve-size 2))))
         (set! dead #t))
