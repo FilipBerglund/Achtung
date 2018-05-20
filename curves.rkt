@@ -3,12 +3,13 @@
 (require "curve.rkt")
 (require "powerup.rkt")
 (require "Abstractions.rkt")
+
 (define speed-powerup (new speed-powerup%
                            [color red]))
 (define size-powerup (new size-powerup%
                           [color green]))
 (define clear-powerup (new clear-powerup%
-                           [color blue]))
+                           [color actual-blue]))
 (define collision-powerup (new collision-powerup%
                                [color yellow]))
 (define super-powerup (new super-powerup%
@@ -21,8 +22,11 @@
 (define gamestate%
   (class object%
     (init-field
-     [number-of-players 4] ;Number of players, between 2 and 5.
+     [number-of-players 4] ;Number of players, between 2 and 5. For debugging
+     ;1 player is okay but then the function end-round/game? (in this file) needs
+     ;to be modified so that the game clock isn't stoped when the game ends.
      [players (list )]
+     ;The active powerups.
      [powerups (list speed-powerup
                      size-powerup
                      clear-powerup
@@ -30,6 +34,10 @@
                      super-powerup
                      )])   
 
+    (define/public (set-number-of-players nr)
+      (set! number-of-players nr))
+    
+    ;Creates the curves and sets players to this list of curves.
     (define/public (make-curves)
       (set! players (creator number-of-players)))
     (define (creator number-of-players)
@@ -37,19 +45,23 @@
           '()
           (cons (new curve%
                      [name (list-ref name-list (- number-of-players 1))]
-                     [curve_color (list-ref color-list (- number-of-players 1))] ;Every curve gets it's own color.
-                     [left  (list-ref input-keys (* 2 (- number-of-players 1)))] ;Every curve gets it's own controls.
+                     ;Every curve gets it's own color.
+                     [curve_color (list-ref color-list (- number-of-players 1))]
+                     ;Every curve gets it's own controls.
+                     [left  (list-ref input-keys (* 2 (- number-of-players 1)))]
                      [right (list-ref input-keys (+ (* 2 (- number-of-players 1)) 1))])
                 (creator (- number-of-players 1)))))
 
     ;Checks every possible ordered pair of curves.
     ;So it leads to (number-of-curves)^2 function calls..
     (define/public (check-collisions)
-      (map (lambda (x) (map (lambda (y) (send x collision? y (send x get-bitmap-level))) players)) players))
+      (map (lambda (x) (map (lambda (y) (send x collision? y (send x get-bitmap-level)))
+                            players)) players))
 
     ;Checks collitions with powerups. Works even when collition is off.
     (define/public (check-powerups)
-      (map (lambda (x) (map (lambda (y) (send x collision? y (send x get-bitmap-level))) powerups)) players))
+      (map (lambda (x) (map (lambda (y) (send x collision? y (send x get-bitmap-level)))
+                            powerups)) players))
 
     (define/public (update-positions)
       (map (lambda (x) (send x update-pos)) players))
@@ -72,17 +84,15 @@
 
     ;Curves get a point if they are alive while another player dies.
     (define (calc-score)
-      (map (lambda (x) (when (send x died?)
-                         (map (lambda (y)
-                                (unless (send y get-dead)
-                                  (send y addscore)))
-                              players)))
+      (map (lambda (x)
+             (when (send x died?)
+               (map (lambda (y)
+                      (unless (send y get-dead)
+                        (send y addscore)))
+                    players)))
            players))
-    
-    (define/public (stop-holes)
-      (map (lambda (x) (send x set-hole! #f)) players))
 
-    ;Displays the current score on dc and sorts it with the person with the highest
+    ;Draws the current score on dc and sorts it with the person with the highest
     ;score at the top.
     (define/public (display-score dc)
       (calc-score)
@@ -116,18 +126,18 @@
         
     
     ;Ends the round or the game. Displays nice things on the canvas.
-    (define/public (end-round/game? dc clock)
+    ;Also returns a boolean.
+    (define/public (end-round/game? dc)
       (send dc set-text-foreground white)
       (cond ((and (game-over?) (round-over?))
-             (send dc draw-text "GAME OVER" 250 240)
+             (send dc draw-text "GAME OVER" 230 240)
              (send dc draw-text (string-join
                                  ;Players is sorted so the first is the leader.
                                  (list (send (car players) get-name)
-                                       "WINS!")) 250 300)
-             ;(send clock stop);To be added later but now it's not
-             ;active for debugging purposes.
-             )
+                                       "WINS!")) 230 300)
+             #t)
             ((round-over?)
              (send dc draw-text "ROUND OVER" 250 280)
-             (send clock stop))))                                                  
+             #t)
+            (else #f)))                                                  
     (super-new)))

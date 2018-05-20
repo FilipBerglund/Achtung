@@ -6,6 +6,7 @@
 (define (float->int x)
   (inexact->exact (round x)))
 
+(define standard-font (make-font #:family 'default))
 (define a-font (make-font #:size 40
                           #:family 'roman
                           #:style 'italic
@@ -17,9 +18,9 @@
    (or (not (equal? (send color red) 255))
        (not (equal? (send color green) 255))
        (not (equal? (send color blue) 255)))))
-
+(define gray (make-object color% 50 50 50))
+(define actual-blue (make-object color% 0 0 255))
 (define red (make-object color% 253 24 0))
-(define red2 (make-object color% 253 24 0 0.5))
 (define blue (make-object color% 0 158 231))
 (define green (make-object color% 0 219 12))
 (define yellow (make-object color% 237 237 7))

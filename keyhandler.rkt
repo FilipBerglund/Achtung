@@ -1,5 +1,5 @@
 #lang racket/gui
-(provide (all-defined-out))
+(provide key-down! key-up! key-down?)
 
 (define keyboard (make-hasheq))
 (define (key-down! char) (hash-set! keyboard char #t))

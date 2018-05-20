@@ -51,7 +51,8 @@
           superpowerup-dc))
 
     ;This is called everytime the curve is drawn, after a random number of
-    ;frames the curve stops drawing itself for a set number of frames. Returns a boolean.
+    ;frames the curve stops drawing itself for a set number of frames. Returns a
+    ;boolean.
     (define hole?
       (let ((length 20))
         (lambda ()
@@ -79,7 +80,8 @@
              (send dc draw-bitmap curve-bitmap 0 0 'solid)
              (send dc draw-bitmap superpowerup-bitmap 0 0 'solid)
              ;;Without this it draws the above on the curve, this undoes that.
-             (set! collision-off #t));You can't collide with other things when you are a hole.
+             (set! collision-off #t));You can't collide with other things when you
+            ;are a hole.
             (else
              ;The pen needs to change when the size powerup is activated.
              (send curve-dc set-pen curve_color curve-size 'solid);Change!
@@ -92,24 +94,29 @@
     (define/public (get-dead)
       dead)
 
-    ;This allows for the user to control the curve by changing its direction through changing the angle of the velocity.
+    ;This allows for the user to control the curve by changing its direction through
+    ;changing the angle of the velocity.
     (define/public (update-vel)
-      (cond ((key-down? left) (set! angle (- angle (* 0.02 speed)))) ;For each frame a key is pressed the angle of the velocity changes.
-            ((key-down? right) (set! angle (+ angle (* 0.02 speed))))) ;The speed multiplier makes the turn radius about the same regardless of the speed.
-      (set! x-vel (* speed (cos angle))) ;Makes the speed constant regardless of the direction.
+      (cond ((key-down? left) (set! angle (- angle (* 0.02 speed)))) ;For each frame
+            ;a key is pressed the angle of the velocity changes.
+            ((key-down? right) (set! angle (+ angle (* 0.02 speed))))) ;The speed
+      ;multiplier makes the turn radius about the same regardless of the speed.
+      (set! x-vel (* speed (cos angle))) ;Makes the speed constant regardless of the
+      ;direction.
       (set! y-vel (* speed (sin angle))))
 
     ;Not pretty I know.
     (define/public (get-collision-on?)
       (not collision-off))
-    
+
+    ;This is what 
     (define/public (apply-on-hit-effect x)
       (when (send x get-collision-on?)
         (send x set-dead! #t)))
     
     ;Checks if the curve will collide with another-curve.
-    ;It does this by looking at the other game objects curve-bitmap and if that is colored
-    ;it runs that objects apply-on-hit-effect.
+    ;It does this by looking at the other game objects curve-bitmap and if that is
+    ;colored it runs that objects apply-on-hit-effect.
     (define/public (collision? another-object bitmap-level)
       ;You can only collide with curves on your bitmap level
       ;Gets the color of three pixels where this curve wants to move to.
@@ -128,14 +135,16 @@
               (float->int (+ x-pos (* (+ (/ curve-size 1.7) 1) (cos (- angle (/ pi 3))))))
               (float->int (+ y-pos (* (+ (/ curve-size 1.7) 1) (sin (- angle (/ pi 3))))))
               collision-color3)
-        ;If it's a non white pixel it dies, unless the collision is off. Also, it can't move beyond the screen.
+        ;If it's a non white pixel it dies, unless the collision is off. Also, it can't
+        ;move beyond the screen.
         (when (or (not (white? collision-color1))
                   (not (white? collision-color2))
                   (not (white? collision-color3)))
           (send another-object apply-on-hit-effect this))))
 
     (define/public (update-pos) ;;Updates position.
-      ;Because the collisions detection is dependent on the curve-size this has to be so too.
+      ;Because the collisions detection is dependent on the curve-size this has to be
+      ;so too.
       (when (or (< 797 (+ (+ x-pos x-vel) (/ curve-size 2)))
                 (> 13  (- (+ x-pos x-vel) (/ curve-size 2)))
                 (< 597 (+ (+ y-pos y-vel) (/ curve-size 2)))
@@ -192,6 +201,9 @@
       (set! current-bitmap-level 'level-2))
     (define/public (combine-bitmaps)
       ;Doesn't get much uglier than this lol. I don't know how else to do it though.
+      ;I can't seem to find a way to change the alpha of things that are already drawn
+      ;to a bitmap. This also introduces a lag when this function is called at the end
+      ;of the superpowerup powerup.
       (send curve-dc draw-bitmap superpowerup-bitmap 0 0 'solid)
       (send curve-dc draw-bitmap superpowerup-bitmap 0 0 'solid)
       (send curve-dc draw-bitmap superpowerup-bitmap 0 0 'solid)

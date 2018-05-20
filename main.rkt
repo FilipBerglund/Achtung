@@ -4,17 +4,20 @@
 (require "powerup.rkt")
 (require "Abstractions.rkt")
 (require "keyhandler.rkt")
+(require "menu-item.rkt")
 
-(define players (new gamestate%
-                     [number-of-players 1]))
-(send players make-curves)
+(define haze-bitmap (make-object bitmap% 1050 610 #f 0.5))
+(define haze-dc (new bitmap-dc% [bitmap haze-bitmap]))
+(send haze-dc set-alpha 0.2)
+(send haze-dc set-brush gray 'solid )
+(send haze-dc draw-rectangle 0 0 1050 610)
 
 ;;The main window
-(define *game-frame* (new frame%
-                          (label "Achtung, die Kurve!")
-                          (height 710)
-                          (width 1050)))
-(send *game-frame* show #t)
+(define game-frame (new frame%
+                        (label "Achtung, die Kurve!")
+                        (height 610)
+                        (width 1050)))
+(send game-frame show #t)
 
 (define (draw-playingfield-frame dc)
   (send dc set-pen yellow 6 'solid)
@@ -23,69 +26,72 @@
   (send dc draw-line 800 10 800 600)
   (send dc draw-line 10 600 800 600))
 
+(define gamestate1 (new gamestate%))
+
+(define number-of-players
+  (new menu-item%
+       [callback
+        (lambda (arg)
+          (when (and (<= arg 5) (>= arg 2))
+            (send gamestate1 set-number-of-players arg)
+            (send gamestate1 make-curves)
+            (send gamestate1 new-round)))]
+       [draw-proc (lambda (dc y-pos)
+                    (send dc draw-text "New game! Number of players?" 240 y-pos))]))
+
+(define new-round
+  (new menu-item%
+       [callback
+        (lambda (arg)
+          (send gamestate1 new-round)
+          (send game-canvas focus)
+          (send game-canvas set-show-menu! #f))]
+       [draw-proc (lambda (dc y-pos)
+                    (send dc draw-text "New round!" 240 y-pos))]))
+
+
 
 (define (drawing-proc canvas dc)
-  ;(let ([startTime (current-inexact-milliseconds)])
-  ;(send dc draw-bitmap curve-bitmap 0 0 'solid)
-  (draw-playingfield-frame dc)
-  (send players update-velocities)
-  (send players draw-powerups dc)
-  (send players draw-curves dc)
-  (send players update-positions)
-  (send players check-collisions)
-  (send players display-score dc)
-  (send players end-round/game? dc game-clock)
-  (send players check-powerups))
+  (let ((show-menu (send canvas show-menu?)))
+    (cond ((not show-menu)
+           ;(let ([startTime (current-inexact-milliseconds)])
+           ;(send dc draw-bitmap curve-bitmap 0 0 'solid)
+           (draw-playingfield-frame dc)
+           (send gamestate1 update-velocities)
+           (send gamestate1 draw-powerups dc)
+           (send gamestate1 draw-curves dc)
+           (send gamestate1 update-positions)
+           (send gamestate1 check-collisions)
+           (send gamestate1 display-score dc)
+           (send gamestate1 check-powerups)
+           (when (send gamestate1 end-round/game? dc)
+             (send game-canvas set-show-menu! #t)))
+          (show-menu
+           (send gamestate1 display-score dc)
+           (send gamestate1 draw-curves dc)
+           (draw-playingfield-frame dc)
+           (send dc draw-bitmap haze-bitmap 0 0 'solid)
+           (send gamestate1 end-round/game? dc)
+           (send game-canvas draw-menu dc)
+           )
+          )))
 ;(displayln (- (current-inexact-milliseconds) startTime)))
 
 ;This is where the game is played
-(define *game-window*
+(define game-canvas
   (new special-canvas%
-       [parent *game-frame*]
-       [paint-callback drawing-proc]))
-(send *game-window* set-canvas-background black)
+       [parent game-frame]
+       [paint-callback drawing-proc]
+       [menu-item-list (list new-round number-of-players)]))
+(send game-canvas set-canvas-background black)
+
 ;Updates the game
 (define (*render-fn*)
-  (send *game-window* refresh-now))
+  (send game-canvas refresh-now))
 
 ;Sets the framerate and calls render-fn that updates the game and draws to the screen
 (define game-clock
   (new timer%
        [notify-callback *render-fn*]
        [just-once? #f]))
-
-(define Start
-  (new button%
-       [parent *game-frame*]
-       [label "Start"]
-       [callback (lambda (button event)
-                   (send *game-window* focus)
-                   (send Start set-label "playing..")
-                   (send game-clock start 12 #f))]))
-;(define Pause
-;  (new button%
-;       [parent *game-frame*]
-;       [label "Pause"]
-;       [callback (lambda (button event)
-;                   (send Pause set-label "Paused..")
-;                   (send Start set-label "Restart")
-;                   (send game-clock stop))]))
-
-(define New-round
-  (new button%
-       [parent *game-frame*]
-       [label "NEW ROUND"]
-       [callback (lambda (botton event)
-                   (send players new-round)
-                   (send game-clock start 12 #f)
-                   (send *game-window* focus))]))
-
-(define New-game
-  (new button%
-       [parent *game-frame*]
-       [label "NEW GAME"]
-       [callback (lambda (botton event)
-                   (send players new-round)
-                   (send game-clock start 12 #f)
-                   (send *game-window* focus)
-                   (send players reset-scores!))]))
+(send game-clock start 12 #f)
