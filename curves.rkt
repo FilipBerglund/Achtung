@@ -12,12 +12,12 @@
                            [color actual-blue]))
 (define collision-powerup (new collision-powerup%
                                [color yellow]))
-(define super-powerup (new super-powerup%
-                           [color gray]
-                           [x-pos 90]
-                           [y-pos 260]
-                           [spawn-duration 1000]
-                           [effect-duration 1000]))
+(define superpowerup (new super-powerup%
+                          [color gray]
+                          [x-pos 90]
+                          [y-pos 260]
+                          [spawn-duration 1000]
+                          [effect-duration 1000]))
 
 (define gamestate%
   (class object%
@@ -30,12 +30,21 @@
      [powerups (list speed-powerup
                      size-powerup
                      clear-powerup
-                     collision-powerup
-                     super-powerup
-                     )])   
+                     collision-powerup)])   
+    (define/public (set-superpowerup-on x)
+      (if (equal? x 1)
+          (set! powerups (cons superpowerup powerups))
+          (set! powerups (remove superpowerup powerups))))
+    
+    (define/public (superpowerup-on?)
+      (if (equal? (memq superpowerup powerups) #f)
+          #f #t))
 
+    
     (define/public (set-number-of-players nr)
       (set! number-of-players nr))
+    (define/public (get-number-of-players)
+      number-of-players)
     
     ;Creates the curves and sets players to this list of curves.
     (define/public (make-curves)
@@ -116,13 +125,14 @@
       (ormap (lambda (x) (<= (* (sub1 number-of-players) 10) (send x get-score)))
              players))
 
-    ;The round is over when all but one player is dead.
+    ;When one or less players are alive, the round ends.  
     (define (round-over?)
-      (let ((dead-players 0))
-        (map (lambda (x) (when (send x get-dead)
-                           (set! dead-players (add1 dead-players))))
+      (let ((number-of-dead-players 0))
+        (map (lambda (x)
+               (when (send x get-dead)
+                 (set! number-of-dead-players (add1 number-of-dead-players))))
              players)
-        (equal? (add1 dead-players) number-of-players)))
+        (>= (add1 number-of-dead-players) number-of-players)))
         
     
     ;Ends the round or the game. Displays nice things on the canvas.
@@ -137,7 +147,7 @@
                                        "WINS!")) 230 300)
              #t)
             ((round-over?)
-             (send dc draw-text "ROUND OVER" 250 280)
+             (send dc draw-text "ROUND OVER" 210 280)
              #t)
             (else #f)))                                                  
     (super-new)))

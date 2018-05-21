@@ -39,7 +39,7 @@
                (set! menu-col (add1 menu-col))))))
     
     (define/public (draw-menu dc)
-      (let ((y-pos 100))
+      (let ((y-pos 420))
         (map (lambda (x)
                (send x draw-menu-item dc y-pos)
                (set! y-pos (+ y-pos 40)))

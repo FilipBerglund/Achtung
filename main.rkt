@@ -8,7 +8,7 @@
 
 (define haze-bitmap (make-object bitmap% 1050 610 #f 0.5))
 (define haze-dc (new bitmap-dc% [bitmap haze-bitmap]))
-(send haze-dc set-alpha 0.2)
+(send haze-dc set-alpha 0.25)
 (send haze-dc set-brush gray 'solid )
 (send haze-dc draw-rectangle 0 0 1050 610)
 
@@ -65,10 +65,7 @@
        [parent game-canvas]
        [callback
         (lambda (arg)
-            (send gamestate1 set-number-of-players arg)
-            (send gamestate1 make-curves)
-            (send gamestate1 new-round);For some reason it lags when this isn't here.
-            (send game-canvas set-show-menu! #f))]
+          (send gamestate1 set-number-of-players arg))]
        [in-focus-draw-proc
         (lambda (dc y-pos)
           (cond ((< (send game-canvas get-menu-col) 2)
@@ -77,15 +74,71 @@
                  (send game-canvas set-menu-col! 5)))
           (send dc set-font standard-font)
           (send dc set-text-foreground red)
+          (send dc draw-text "->" 810 y-pos)
           (send dc draw-text
-                (number->string (send game-canvas get-menu-col)) 200
-                (+ (*  (send game-canvas get-menu-row) 40) 100))
-          (send dc draw-text "New game! Number of players?" 240 y-pos))]
+                (string-join
+                 (list "Number of players:"
+                       (number->string (send game-canvas get-menu-col))))
+                835 y-pos))]
        [draw-proc
         (lambda (dc y-pos)
           (send dc set-font standard-font)
           (send dc set-text-foreground white)
-          (send dc draw-text "New game! Number of players?" 240 y-pos))]))
+          (send dc draw-text
+                (string-join
+                 (list "Number of players:"
+                       (number->string (send gamestate1 get-number-of-players))))
+                835 y-pos))]))
+(define superpowerup-toggle
+  (new menu-item%
+       [parent game-canvas]
+       [callback
+        (lambda (arg)
+          (send gamestate1 set-superpowerup-on arg))]
+       [in-focus-draw-proc
+        (lambda (dc y-pos)
+          (cond ((< (send game-canvas get-menu-col) 0)
+                 (send game-canvas set-menu-col! 0))
+                ((> (send game-canvas get-menu-col) 1)
+                 (send game-canvas set-menu-col! 1)))
+          (send dc set-font standard-font)
+          (send dc set-text-foreground red)
+          (send dc draw-text "->" 810 y-pos)
+          (send dc draw-text
+                (string-join
+                 (list "Superpowerup:"
+                       (if (equal? (send game-canvas get-menu-col) 0)
+                           "off" "on"))) 835 y-pos))]
+       [draw-proc
+        (lambda (dc y-pos)
+          (send dc set-font standard-font)
+          (send dc set-text-foreground white)
+          (send dc draw-text
+                (string-join
+                 (list "Superpowerup:"
+                       (if (send gamestate1 superpowerup-on?)
+                           "on" "off")))
+                835 y-pos))]))
+
+(define New-game
+  (new menu-item%
+       [parent game-canvas]
+       [callback
+        (lambda (arg)
+          (send gamestate1 make-curves)
+          (send gamestate1 new-round);For some reason it lags when this isn't here.
+          (send game-canvas set-show-menu! #f))]
+       [in-focus-draw-proc
+        (lambda (dc y-pos)
+          (send dc set-font standard-font)
+          (send dc set-text-foreground red)
+          (send dc draw-text "->" 810 y-pos)
+          (send dc draw-text "Start new game!" 835 y-pos))]
+       [draw-proc
+        (lambda (dc y-pos)
+          (send dc set-font standard-font)
+          (send dc set-text-foreground white)
+          (send dc draw-text "Start new game!" 835 y-pos))]))
 
 ;A menu item that lets you start a new round
 (define new-round
@@ -99,15 +152,16 @@
         (lambda (dc y-pos)   
           (send dc set-font standard-font)
           (send dc set-text-foreground red)
-          (send dc draw-text "->" 200 y-pos)
-          (send dc draw-text "New round!" 240 y-pos))]
+          (send dc draw-text "->" 810 y-pos)
+          (send dc draw-text "New round!" 835 y-pos))]
        [draw-proc
         (lambda (dc y-pos)
           (send dc set-font standard-font)
           (send dc set-text-foreground white)
-          (send dc draw-text "New round!" 240 y-pos))]))
+          (send dc draw-text "New round!" 835 y-pos))]))
 
-(send game-canvas set-menu-items! (list new-round number-of-players))
+(send game-canvas set-menu-items!
+      (list new-round New-game number-of-players superpowerup-toggle))
 
 
 ;Updates the game
