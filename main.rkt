@@ -28,34 +28,17 @@
 
 (define gamestate1 (new gamestate%))
 
-(define number-of-players
-  (new menu-item%
-       [callback
-        (lambda (arg)
-          (when (and (<= arg 5) (>= arg 2))
-            (send gamestate1 set-number-of-players arg)
-            (send gamestate1 make-curves)
-            (send gamestate1 new-round)))]
-       [draw-proc (lambda (dc y-pos)
-                    (send dc draw-text "New game! Number of players?" 240 y-pos))]))
-
-(define new-round
-  (new menu-item%
-       [callback
-        (lambda (arg)
-          (send gamestate1 new-round)
-          (send game-canvas focus)
-          (send game-canvas set-show-menu! #f))]
-       [draw-proc (lambda (dc y-pos)
-                    (send dc draw-text "New round!" 240 y-pos))]))
-
-
-
 (define (drawing-proc canvas dc)
   (let ((show-menu (send canvas show-menu?)))
-    (cond ((not show-menu)
-           ;(let ([startTime (current-inexact-milliseconds)])
-           ;(send dc draw-bitmap curve-bitmap 0 0 'solid)
+    (cond (show-menu
+           (send gamestate1 display-score dc)
+           (send gamestate1 draw-curves dc)
+           (draw-playingfield-frame dc)
+           (send dc draw-bitmap haze-bitmap 0 0 'solid)
+           (send gamestate1 end-round/game? dc)
+           (send game-canvas draw-menu dc)
+           )
+          (else
            (draw-playingfield-frame dc)
            (send gamestate1 update-velocities)
            (send gamestate1 draw-powerups dc)
@@ -65,25 +48,67 @@
            (send gamestate1 display-score dc)
            (send gamestate1 check-powerups)
            (when (send gamestate1 end-round/game? dc)
-             (send game-canvas set-show-menu! #t)))
-          (show-menu
-           (send gamestate1 display-score dc)
-           (send gamestate1 draw-curves dc)
-           (draw-playingfield-frame dc)
-           (send dc draw-bitmap haze-bitmap 0 0 'solid)
-           (send gamestate1 end-round/game? dc)
-           (send game-canvas draw-menu dc)
-           )
-          )))
-;(displayln (- (current-inexact-milliseconds) startTime)))
+             (send game-canvas set-show-menu! #t)
+             (send game-canvas set-menu-row-to-0))
+           ))))
 
 ;This is where the game is played
 (define game-canvas
   (new special-canvas%
        [parent game-frame]
-       [paint-callback drawing-proc]
-       [menu-item-list (list new-round number-of-players)]))
+       [paint-callback drawing-proc]))
 (send game-canvas set-canvas-background black)
+
+;A menu item that lets you start a new game with a set number of players.
+(define number-of-players
+  (new menu-item%
+       [parent game-canvas]
+       [callback
+        (lambda (arg)
+            (send gamestate1 set-number-of-players arg)
+            (send gamestate1 make-curves)
+            (send gamestate1 new-round);For some reason it lags when this isn't here.
+            (send game-canvas set-show-menu! #f))]
+       [in-focus-draw-proc
+        (lambda (dc y-pos)
+          (cond ((< (send game-canvas get-menu-col) 2)
+                 (send game-canvas set-menu-col! 2))
+                ((> (send game-canvas get-menu-col) 5)
+                 (send game-canvas set-menu-col! 5)))
+          (send dc set-font standard-font)
+          (send dc set-text-foreground red)
+          (send dc draw-text
+                (number->string (send game-canvas get-menu-col)) 200
+                (+ (*  (send game-canvas get-menu-row) 40) 100))
+          (send dc draw-text "New game! Number of players?" 240 y-pos))]
+       [draw-proc
+        (lambda (dc y-pos)
+          (send dc set-font standard-font)
+          (send dc set-text-foreground white)
+          (send dc draw-text "New game! Number of players?" 240 y-pos))]))
+
+;A menu item that lets you start a new round
+(define new-round
+  (new menu-item%
+       [parent game-canvas]
+       [callback
+        (lambda (arg)
+          (send gamestate1 new-round)
+          (send game-canvas set-show-menu! #f))]
+       [in-focus-draw-proc
+        (lambda (dc y-pos)   
+          (send dc set-font standard-font)
+          (send dc set-text-foreground red)
+          (send dc draw-text "->" 200 y-pos)
+          (send dc draw-text "New round!" 240 y-pos))]
+       [draw-proc
+        (lambda (dc y-pos)
+          (send dc set-font standard-font)
+          (send dc set-text-foreground white)
+          (send dc draw-text "New round!" 240 y-pos))]))
+
+(send game-canvas set-menu-items! (list new-round number-of-players))
+
 
 ;Updates the game
 (define (*render-fn*)
@@ -95,3 +120,4 @@
        [notify-callback *render-fn*]
        [just-once? #f]))
 (send game-clock start 12 #f)
+(send game-canvas focus)

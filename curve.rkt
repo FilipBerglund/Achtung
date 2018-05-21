@@ -144,7 +144,7 @@
 
     (define/public (update-pos) ;;Updates position.
       ;Because the collisions detection is dependent on the curve-size this has to be
-      ;so too.
+      ;so too. Regarless of collision status you die when you go beyond the screen boarders.
       (when (or (< 797 (+ (+ x-pos x-vel) (/ curve-size 2)))
                 (> 13  (- (+ x-pos x-vel) (/ curve-size 2)))
                 (< 597 (+ (+ y-pos y-vel) (/ curve-size 2)))

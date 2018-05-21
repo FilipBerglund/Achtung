@@ -13,7 +13,7 @@
 (define collision-powerup (new collision-powerup%
                                [color yellow]))
 (define super-powerup (new super-powerup%
-                           [color orange]
+                           [color gray]
                            [x-pos 90]
                            [y-pos 260]
                            [spawn-duration 1000]
