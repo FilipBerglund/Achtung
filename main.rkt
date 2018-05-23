@@ -1,32 +1,8 @@
 #lang racket/gui
 (require "special-canvas.rkt")
-(require "curves.rkt")
-(require "powerup.rkt")
 (require "Abstractions.rkt")
-(require "keyhandler.rkt")
 (require "menu-item.rkt")
-
-(define haze-bitmap (make-object bitmap% 1050 610 #f 0.5))
-(define haze-dc (new bitmap-dc% [bitmap haze-bitmap]))
-(send haze-dc set-alpha 0.25)
-(send haze-dc set-brush gray 'solid )
-(send haze-dc draw-rectangle 0 0 1050 610)
-
-;;The main window
-(define game-frame (new frame%
-                        (label "Achtung, die Kurve!")
-                        (height 610)
-                        (width 1050)))
-(send game-frame show #t)
-
-(define (draw-playingfield-frame dc)
-  (send dc set-pen yellow 6 'solid)
-  (send dc draw-line 10 600 10 10)
-  (send dc draw-line 10 10 800 10)
-  (send dc draw-line 800 10 800 600)
-  (send dc draw-line 10 600 800 600))
-
-(define gamestate1 (new gamestate%))
+(require "world-init.rkt")
 
 (define (drawing-proc canvas dc)
   (let ((show-menu (send canvas show-menu?)))
@@ -34,10 +10,10 @@
            (send gamestate1 display-score dc)
            (send gamestate1 draw-curves dc)
            (draw-playingfield-frame dc)
-           (send dc draw-bitmap haze-bitmap 0 0 'solid)
-           (send gamestate1 end-round/game? dc)
-           (send game-canvas draw-menu dc)
-           )
+           (send dc draw-bitmap haze-bitmap 0 0 'solid);Adds haze when the menu
+           ;is active, looks nice.
+           (send gamestate1 end-round/game? dc);Displays endgame screen.
+           (send game-canvas draw-menu dc))
           (else
            (draw-playingfield-frame dc)
            (send gamestate1 update-velocities)
@@ -47,10 +23,10 @@
            (send gamestate1 check-collisions)
            (send gamestate1 display-score dc)
            (send gamestate1 check-powerups)
-           (when (send gamestate1 end-round/game? dc)
+           (when (send gamestate1 end-round/game? dc);Displays endgame screen and
+             ;and returns whether or not the round or game is over.
              (send game-canvas set-show-menu! #t)
-             (send game-canvas set-menu-row-to-0))
-           ))))
+             (send game-canvas set-menu-row! 0))))))
 
 ;This is where the game is played
 (define game-canvas
@@ -68,6 +44,7 @@
           (send gamestate1 set-number-of-players arg))]
        [in-focus-draw-proc
         (lambda (dc y-pos)
+          ;Only 2,3,4 or 5 players are allowed.
           (cond ((< (send game-canvas get-menu-col) 2)
                  (send game-canvas set-menu-col! 2))
                 ((> (send game-canvas get-menu-col) 5)
@@ -81,6 +58,7 @@
                        (number->string (send game-canvas get-menu-col))))
                 835 y-pos))]
        [draw-proc
+        ;If not in focus this function runs and displays the selected setting.
         (lambda (dc y-pos)
           (send dc set-font standard-font)
           (send dc set-text-foreground white)
@@ -89,14 +67,18 @@
                  (list "Number of players:"
                        (number->string (send gamestate1 get-number-of-players))))
                 835 y-pos))]))
+
+;Menu item that lets you select if you want the superpowerup to be active.
 (define superpowerup-toggle
   (new menu-item%
        [parent game-canvas]
        [callback
+        ;On if arg is 1, off if arg is 0.
         (lambda (arg)
           (send gamestate1 set-superpowerup-on arg))]
        [in-focus-draw-proc
         (lambda (dc y-pos)
+          ;You only have two options.
           (cond ((< (send game-canvas get-menu-col) 0)
                  (send game-canvas set-menu-col! 0))
                 ((> (send game-canvas get-menu-col) 1)
@@ -110,6 +92,7 @@
                        (if (equal? (send game-canvas get-menu-col) 0)
                            "off" "on"))) 835 y-pos))]
        [draw-proc
+        ;If not in focus this function runs and displays the selected setting.
         (lambda (dc y-pos)
           (send dc set-font standard-font)
           (send dc set-text-foreground white)
@@ -163,15 +146,15 @@
 (send game-canvas set-menu-items!
       (list new-round New-game number-of-players superpowerup-toggle))
 
-
 ;Updates the game
-(define (*render-fn*)
+(define (render-fn)
   (send game-canvas refresh-now))
 
 ;Sets the framerate and calls render-fn that updates the game and draws to the screen
 (define game-clock
   (new timer%
-       [notify-callback *render-fn*]
+       [notify-callback render-fn]
        [just-once? #f]))
+
 (send game-clock start 12 #f)
 (send game-canvas focus)

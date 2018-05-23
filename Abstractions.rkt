@@ -18,7 +18,7 @@
    (or (not (equal? (send color red) 255))
        (not (equal? (send color green) 255))
        (not (equal? (send color blue) 255)))))
-(define gray (make-object color% 50 50 50))
+(define gray (make-object color% 70 70 50))
 (define actual-blue (make-object color% 0 0 255))
 (define red (make-object color% 253 24 0))
 (define blue (make-object color% 0 158 231))
@@ -34,8 +34,6 @@
 
 (define color-list
   (list red yellow orange green purple))
-
-(define input-keys (list #\q #\w #\p #\å #\n #\m #\t #\y #\x #\c))
 
 (define scoreboard-positions
   (list 40 80 120 160 200))

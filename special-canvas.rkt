@@ -4,8 +4,7 @@
 (provide special-canvas%)
 (define special-canvas%
   (class canvas%
-    (init-field [state 1]
-                [show-menu #t]
+    (init-field [show-menu #t]
                 [menu-item-list (list )]
                 [menu-row 0]
                 [menu-col 0])
@@ -53,14 +52,12 @@
       show-menu)
     (define/public (set-show-menu! x)
       (set! show-menu x))
-    (define/public (set-menu-row-to-0)
-      (set! menu-row 0))
     (define/public (get-menu-row)
       menu-row)
     (define/public (get-menu-col)
       menu-col)
-    (define/public (set-menu-row! x)
-      (set! menu-row x))
-    (define/public (set-menu-col! x)
-      (set! menu-col x))
+    (define/public (set-menu-row! row)
+      (set! menu-row row))
+    (define/public (set-menu-col! col)
+      (set! menu-col col))
     (super-new)))
