@@ -38,9 +38,11 @@
                (set! menu-col (add1 menu-col))))))
     
     (define/public (draw-menu dc)
-      (let ((y-pos 420))
+      (let ((y-pos (- frame-height 190))
+            (x-pos (- frame-width 240)))
+        (send dc set-font standard-font)
         (map (lambda (x)
-               (send x draw-menu-item dc y-pos)
+               (send x draw-menu-item dc y-pos x-pos)
                (set! y-pos (+ y-pos 40)))
              menu-item-list)))
 

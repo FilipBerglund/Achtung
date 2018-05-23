@@ -35,5 +35,20 @@
 (define color-list
   (list red yellow orange green purple))
 
-(define scoreboard-positions
-  (list 40 80 120 160 200))
+(define (draw-playingfield-frame dc)
+  (send dc set-pen yellow 6 'solid)
+  (send dc draw-line 10 (- frame-height 10) 10 10)
+  (send dc draw-line 10 10 (- frame-width 250) 10)
+  (send dc draw-line
+        (- frame-width 250) 10
+        (- frame-width 250) (- frame-height 10))
+  (send dc draw-line
+        10                  (- frame-height 10)
+        (- frame-width 250) (- frame-height 10)))
+
+;It can work with smaler height but 600 is just enough
+;to fit the menu under the scoreboard when playing 5 players.
+(define frame-height 600)
+;It works without the superpowerup on when width is as low as 651 but
+;the superpowerup works badly. Recomended lowest is 700.
+(define frame-width 1000)

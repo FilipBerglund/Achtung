@@ -10,9 +10,10 @@
            (send gamestate1 display-score dc)
            (send gamestate1 draw-curves dc)
            (draw-playingfield-frame dc)
-           (send dc draw-bitmap haze-bitmap 0 0 'solid);Adds haze when the menu
-           ;is active, looks nice.
-           (send gamestate1 end-round/game? dc);Displays endgame screen.
+           ;Adds haze when the menu is active, looks nice.
+           (send dc draw-bitmap haze-bitmap 0 0 'solid)
+           ;Displays endgame screen.
+           (send gamestate1 end-round/game? dc)
            (send game-canvas draw-menu dc))
           (else
            (draw-playingfield-frame dc)
@@ -23,10 +24,16 @@
            (send gamestate1 check-collisions)
            (send gamestate1 display-score dc)
            (send gamestate1 check-powerups)
-           (when (send gamestate1 end-round/game? dc);Displays endgame screen and
-             ;and returns whether or not the round or game is over.
-             (send game-canvas set-show-menu! #t)
-             (send game-canvas set-menu-row! 0))))))
+           ;Changes to the menu screen and sets the menu selector to new round if
+           ;the round is over but not the game. If the game is over the selector
+           ;is over them menu item "new game".
+;           (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
+;                  (send game-canvas set-show-menu! #t)
+;                  (send game-canvas set-menu-row! 0))
+;                 ((send gamestate1 round-over?)
+;                  (send game-canvas set-show-menu! #t)
+;                  (send game-canvas set-menu-row! 1)))
+           ))))
 
 ;This is where the game is played
 (define game-canvas
@@ -43,30 +50,25 @@
         (lambda (arg)
           (send gamestate1 set-number-of-players arg))]
        [in-focus-draw-proc
-        (lambda (dc y-pos)
+        (lambda (dc y-pos x-pos)
           ;Only 2,3,4 or 5 players are allowed.
-          (cond ((< (send game-canvas get-menu-col) 2)
-                 (send game-canvas set-menu-col! 2))
+          (cond ((< (send game-canvas get-menu-col) 1)
+                 (send game-canvas set-menu-col! 1))
                 ((> (send game-canvas get-menu-col) 5)
                  (send game-canvas set-menu-col! 5)))
-          (send dc set-font standard-font)
-          (send dc set-text-foreground red)
-          (send dc draw-text "->" 810 y-pos)
           (send dc draw-text
                 (string-join
                  (list "Number of players:"
                        (number->string (send game-canvas get-menu-col))))
-                835 y-pos))]
+                (+ x-pos 25) y-pos))]
        [draw-proc
         ;If not in focus this function runs and displays the selected setting.
-        (lambda (dc y-pos)
-          (send dc set-font standard-font)
-          (send dc set-text-foreground white)
+        (lambda (dc y-pos x-pos)
           (send dc draw-text
                 (string-join
                  (list "Number of players:"
                        (number->string (send gamestate1 get-number-of-players))))
-                835 y-pos))]))
+                (+ x-pos 25) y-pos))]))
 
 ;Menu item that lets you select if you want the superpowerup to be active.
 (define superpowerup-toggle
@@ -77,33 +79,28 @@
         (lambda (arg)
           (send gamestate1 set-superpowerup-on arg))]
        [in-focus-draw-proc
-        (lambda (dc y-pos)
+        (lambda (dc y-pos x-pos)
           ;You only have two options.
           (cond ((< (send game-canvas get-menu-col) 0)
                  (send game-canvas set-menu-col! 0))
                 ((> (send game-canvas get-menu-col) 1)
                  (send game-canvas set-menu-col! 1)))
-          (send dc set-font standard-font)
-          (send dc set-text-foreground red)
-          (send dc draw-text "->" 810 y-pos)
           (send dc draw-text
                 (string-join
                  (list "Superpowerup:"
                        (if (equal? (send game-canvas get-menu-col) 0)
-                           "off" "on"))) 835 y-pos))]
+                           "off" "on"))) (+ x-pos 25) y-pos))]
        [draw-proc
         ;If not in focus this function runs and displays the selected setting.
-        (lambda (dc y-pos)
-          (send dc set-font standard-font)
-          (send dc set-text-foreground white)
+        (lambda (dc y-pos x-pos)
           (send dc draw-text
                 (string-join
                  (list "Superpowerup:"
                        (if (send gamestate1 superpowerup-on?)
                            "on" "off")))
-                835 y-pos))]))
+                (+ x-pos 25) y-pos))]))
 
-(define New-game
+(define new-game
   (new menu-item%
        [parent game-canvas]
        [callback
@@ -112,16 +109,11 @@
           (send gamestate1 new-round);For some reason it lags when this isn't here.
           (send game-canvas set-show-menu! #f))]
        [in-focus-draw-proc
-        (lambda (dc y-pos)
-          (send dc set-font standard-font)
-          (send dc set-text-foreground red)
-          (send dc draw-text "->" 810 y-pos)
-          (send dc draw-text "Start new game!" 835 y-pos))]
+        (lambda (dc y-pos x-pos)
+          (send dc draw-text "Start new game!" (+ x-pos 25) y-pos))]
        [draw-proc
-        (lambda (dc y-pos)
-          (send dc set-font standard-font)
-          (send dc set-text-foreground white)
-          (send dc draw-text "Start new game!" 835 y-pos))]))
+        (lambda (dc y-pos x-pos)
+          (send dc draw-text "Start new game!" (+ x-pos 25) y-pos))]))
 
 ;A menu item that lets you start a new round
 (define new-round
@@ -132,19 +124,14 @@
           (send gamestate1 new-round)
           (send game-canvas set-show-menu! #f))]
        [in-focus-draw-proc
-        (lambda (dc y-pos)   
-          (send dc set-font standard-font)
-          (send dc set-text-foreground red)
-          (send dc draw-text "->" 810 y-pos)
-          (send dc draw-text "New round!" 835 y-pos))]
+        (lambda (dc y-pos x-pos)
+          (send dc draw-text "New round!" (+ x-pos 25) y-pos))]
        [draw-proc
-        (lambda (dc y-pos)
-          (send dc set-font standard-font)
-          (send dc set-text-foreground white)
-          (send dc draw-text "New round!" 835 y-pos))]))
+        (lambda (dc y-pos x-pos)
+          (send dc draw-text "New round!" (+ x-pos 25) y-pos))]))
 
 (send game-canvas set-menu-items!
-      (list new-round New-game number-of-players superpowerup-toggle))
+      (list new-game new-round number-of-players superpowerup-toggle))
 
 ;Updates the game
 (define (render-fn)

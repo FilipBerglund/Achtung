@@ -1,5 +1,5 @@
 #lang racket/gui
-(provide (all-defined-out))
+(provide gamestate%)
 (require "curve.rkt")
 (require "powerup.rkt")
 (require "Abstractions.rkt")
@@ -15,14 +15,14 @@
 (define superpowerup (new super-powerup%
                           [color gray]
                           [x-pos 90]
-                          [y-pos 260]
+                          [y-pos (- (/ frame-height 2) 60)]
                           [spawn-duration 1000]
                           [effect-duration 1000]))
 
 (define gamestate%
   (class object%
     (init-field
-     [number-of-players 4] ;Number of players, between 2 and 5. For debugging
+     [number-of-players 2] ;Number of players, between 2 and 5. For debugging
      ;1 player is okay but then the function end-round/game? (in this file) needs
      ;to be modified so that the game clock isn't stoped when the game ends.
      [players (list )]
@@ -118,37 +118,41 @@
                                    (if (equal? (send x get-score) 1)
                                        "pt"
                                        "pts")))
-                     830 (* 60 position))
+                     (- frame-width 220) (* 60 position))
                (set! position (add1 position))) players)))
     
     ;The game is over when one curve get enough points.
-    (define (game-over?)
+    (define/public (game-over?)
       (ormap (lambda (x) (<= (* (sub1 number-of-players) 10) (send x get-score)))
              players))
 
     ;When one or less players are alive, the round ends.  
-    (define (round-over?)
+    (define/public (round-over?)
       (let ((number-of-dead-players 0))
         (map (lambda (x)
                (when (send x get-dead)
                  (set! number-of-dead-players (add1 number-of-dead-players))))
              players)
         (>= (add1 number-of-dead-players) number-of-players)))
-        
     
     ;Ends the round or the game. Displays nice things on the canvas.
     ;Also returns a boolean.
     (define/public (end-round/game? dc)
       (send dc set-text-foreground white)
-      (cond ((and (game-over?) (round-over?))
-             (send dc draw-text "GAME OVER" 230 240)
-             (send dc draw-text (string-join
-                                 ;Players is sorted so the first is the leader.
-                                 (list (send (car players) get-name)
-                                       "WINS!")) 230 300)
-             #t)
-            ((round-over?)
-             (send dc draw-text "ROUND OVER" 210 280)
-             #t)
-            (else #f)))                                                  
+      (cond ((and (send this game-over?) (send this round-over?))
+             (send dc draw-text "GAME OVER"
+                   ;To center it on the game-part of the frame.
+                   ;It looks hacky but it's actually thought through.
+                   (- (/ (- frame-width 250) 2) 180)
+                   (- (/ frame-height 2) 60))
+             (send dc draw-text
+                   (string-join
+                    ;Players is sorted so the first is the leader.
+                    (list (send (car players) get-name) "WINS!"))
+                   (- (/ (- frame-width 250) 2) 180)
+                   (/ frame-height 2)))
+            ((send this round-over?)
+             (send dc draw-text "ROUND OVER"
+                   (- (/ (- frame-width 250) 2) 185)
+                   (- (/ frame-height 2)  30)))))                                                  
     (super-new)))

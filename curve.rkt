@@ -18,8 +18,8 @@
      [collision-color2 (new color%)]
      [collision-color3 (new color%)]
      ;When initiated becomes the staring pos then it's the current pos.
-     [x-pos (random 200 600)]
-     [y-pos (random 200 400)]
+     [x-pos (random 200 (- frame-width 450))]
+     [y-pos (random 200 (- frame-height 200))]
      [x-vel 0]
      [y-vel 0]
      [speed 3];Speed is not the same as velocity so this is not superfluous
@@ -28,9 +28,9 @@
      [score 0]
      ;The curve keeps track of where it is and has been.
      ;These are also used to draw to the canvas through the canvas dc.
-     [curve-bitmap (make-object bitmap% 800 600 #f 0.5)]
+     [curve-bitmap (make-object bitmap% (- frame-width 250) (- frame-height 10) #f 0.5)]
      [curve-dc (new bitmap-dc% [bitmap curve-bitmap])]
-     [superpowerup-bitmap (make-object bitmap% 800 600 #f 0.5)]
+     [superpowerup-bitmap (make-object bitmap% (- frame-width 250) (- frame-height 10) #f 0.5)]
      [superpowerup-dc (new bitmap-dc% [bitmap superpowerup-bitmap])]
      ;The active bitmap.
      [current-bitmap curve-bitmap]
@@ -145,9 +145,9 @@
     (define/public (update-pos) ;;Updates position.
       ;Because the collisions detection is dependent on the curve-size this has to be
       ;so too. Regarless of collision status you die when you go beyond the screen boarders.
-      (when (or (< 797 (+ (+ x-pos x-vel) (/ curve-size 2)))
+      (when (or (< (- frame-width 253) (+ (+ x-pos x-vel) (/ curve-size 2)))
                 (> 13  (- (+ x-pos x-vel) (/ curve-size 2)))
-                (< 597 (+ (+ y-pos y-vel) (/ curve-size 2)))
+                (< (- frame-height 13) (+ (+ y-pos y-vel) (/ curve-size 2)))
                 (> 13  (- (+ y-pos y-vel) (/ curve-size 2))))
         (set! dead #t))
       (unless dead
@@ -216,11 +216,15 @@
     (define/public (erase-current-dc)
       (send current-dc erase))
     (define/public (new-round)
-      [set! x-pos (random 200 600)]
-      [set! y-pos (random 200 400)]
+      [set! x-pos (random 200 (- frame-width 450))]
+      [set! y-pos (random 200 (- frame-height 200))]
       [set! angle (random 0 1000)]
       [set! dead #f]
       [send curve-dc erase]
       [send superpowerup-dc erase]
+      (hole?);Calling this funktion fixes the issue where the collision-powerup
+      ;doesn't reset. This is because the powerup sets hole to #t and that in turn
+      ;sets hole-counter to 20. If that happens after the curve is reseted the
+      ;hole-counter is 20.
       [set! hole-counter -80])
     (super-new)))

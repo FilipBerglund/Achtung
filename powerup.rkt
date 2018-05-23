@@ -5,20 +5,20 @@
   (class object%
     (init-field color
                 [x-pos (random 100 700)];Where the powerup is drawn
-                [y-pos (random 100 500)]
+                [y-pos (random 100 (- frame-height 100))]
                 [spawn-countdown (random 1000 1300)]
                 [effect-duration 300]
                 [rarity 1000]
                 [spawn-duration 800]
                 [tmp-duration 800];How long the 
                 [affected-curve #f]
-                [powerup-bitmap (make-object bitmap% 850 650 #f 0.5)]
+                [powerup-bitmap (make-object bitmap% (- frame-width 200) (+ frame-height 40) #f 0.5)]
                 [powerup-dc (new bitmap-dc% [bitmap powerup-bitmap])])
 
     ;Resets the powerups when a new round starts. Removes the effect from the curves
     ;and removes the powerups from canvas.
     (define/public (new-round)
-      (set! tmp-duration 2)
+      (set! tmp-duration 1)
       (send powerup-dc erase)
       (set! spawn-countdown 0))
 
@@ -27,11 +27,10 @@
       powerup-dc)
 
     ;Resets some variables to default.
-    (define/public (reset-powerup dc)
+    (define/public (reset-powerup)
       (send powerup-dc erase)
-      (set! x-pos (random 100 700))
-      (set! y-pos (random 100 500))
-      (send dc draw-bitmap powerup-bitmap 0 0 'solid))
+      (set! x-pos (random 100 (- frame-width 350)))
+      (set! y-pos (random 100 (- frame-height 100))))
 
     ;Draws the powerup to dc.
     (define/public (draw-powerup dc)
@@ -47,13 +46,19 @@
     ;Spawn-duration is how long the powerup is spawned if no one takes it.
     (define/public (update dc)
       (cond ((equal? spawn-countdown 0)
-             (reset-powerup dc)
+             (reset-powerup)
              (set! spawn-countdown (random rarity (+ rarity 300))))
             ((< spawn-countdown spawn-duration)
              (send this draw-powerup dc)
              (set! spawn-countdown (sub1 spawn-countdown)))
             (else
              (set! spawn-countdown (sub1 spawn-countdown)))))
+    
+    (define/public (apply-on-hit-effect curve)
+      (set! tmp-duration effect-duration)
+      (set! affected-curve curve)
+      (reset-powerup)
+      (set! spawn-countdown (random rarity (+ rarity 300))))    
     (super-new)))
 
 ;Changes the size of the curve that takes it.
@@ -87,16 +92,10 @@
            [just-once? #f]
            [notify-callback effect-loop]))
     
-    (define/public (apply-on-hit-effect curve)
-      (set! tmp-duration effect-duration)
+    (define/override (apply-on-hit-effect curve)
+      (super apply-on-hit-effect curve)
       (send powerup-clock start 10 #f)
-      (set! affected-curve curve);So that the powerup knows which curve to reset when
-      ;the effect-duration is reached.
-      (send affected-curve set-size! 20)
-      (send powerup-dc erase);Removes the powerup from canvas.
-      (set! x-pos (random 100 700))
-      (set! y-pos (random 100 500))
-      (set! spawn-countdown (random rarity (+ rarity 300))))
+      (send affected-curve set-size! 20))
     (super-new)))
 
 ;Changes the speed of the curve that takes it.
@@ -121,15 +120,10 @@
            [just-once? #f]
            [notify-callback effect-loop]))
     
-    (define/public (apply-on-hit-effect curve)
-      (set! tmp-duration effect-duration)
+    (define/override (apply-on-hit-effect curve)
       (send powerup-clock start 10 #f)
-      (set! affected-curve curve)
-      (send affected-curve set-speed! 4.5)
-      (send powerup-dc erase)
-      (set! x-pos (random 100 700))
-      (set! y-pos (random 100 500))
-      (set! spawn-countdown (random rarity (+ rarity 300))))
+      (super apply-on-hit-effect curve)
+      (send curve set-speed! 4.5))
     (super-new)))
 
 ;Clears the current bipmap of the curve that takes it.
@@ -144,13 +138,10 @@
                    spawn-countdown
                    rarity)
     
-    (define/public (apply-on-hit-effect curve)
+    (define/override (apply-on-hit-effect curve)
+      (super apply-on-hit-effect curve)
       (set! affected-curve curve)
-      (send affected-curve erase-current-dc)
-      (send powerup-dc erase)
-      (set! x-pos (random 100 700))
-      (set! y-pos (random 100 500))
-      (set! spawn-countdown (random rarity (+ rarity 300))))
+      (send affected-curve erase-current-dc))
     (super-new)))
 
 ;Stops the curve that takes it from drawing the curve, and sets collision to #f.
@@ -177,15 +168,10 @@
            [just-once? #f]
            [notify-callback effect-loop]))
     
-    (define/public (apply-on-hit-effect curve)
-      (set! tmp-duration effect-duration)
+    (define/override (apply-on-hit-effect curve)
+      (super apply-on-hit-effect curve)
       (send powerup-clock start 10 #f)
-      (set! affected-curve curve)
-      (send affected-curve set-hole! #t)
-      (send powerup-dc erase)
-      (set! x-pos (random 100 700))
-      (set! y-pos (random 100 500))
-      (set! spawn-countdown (random rarity (+ rarity 300))))
+      (send affected-curve set-hole! #t))
     (super-new)))
 
 ;The superpowerup sends all curves that take it to another bitmap, "behind" the old one.
@@ -207,17 +193,16 @@
                    spawn-countdown
                    rarity)
     (init-field [affected-curves (list )];More than one curve can take this powerup.
-                [x-pos2 610];The powerup is displayed as two circles, these are the
+                [x-pos2 (- frame-width 440)];The powerup is displayed as two circles, these are the
                 ;coordinates for the second one.
-                [y-pos2 260])
+                [y-pos2 (- (/ frame-height 2) 60)])
     
-    (define/override (reset-powerup dc)
-      (send powerup-dc erase)
-      (send dc draw-bitmap powerup-bitmap 0 0 'solid))
+    (define/override (reset-powerup)
+      (send powerup-dc erase))
     
     (define/override (update dc)
       (cond ((equal? spawn-countdown 0)
-             (reset-powerup dc)
+             (reset-powerup)
              (set! spawn-countdown (random rarity (+ rarity 300))))
             ((< spawn-countdown spawn-duration)
              (send this draw-powerup dc)
@@ -233,8 +218,8 @@
       ;A countdown for how long the powerup is active is displayed to the right of
       ;the playing field.
       (send dc draw-line
-            810 (* 600 (/ (- effect-duration spawn-countdown) effect-duration))
-            810 600)
+            (- frame-width 240) (* (- frame-height 10) (/ (- effect-duration spawn-countdown) effect-duration))
+            (- frame-width 240) (- frame-height 10))
       (send powerup-dc set-pen color 4 'xor)
       (send powerup-dc set-brush black 'transparent)
       (send powerup-dc set-text-foreground white)
@@ -264,12 +249,12 @@
            [just-once? #f]
            [notify-callback effect-loop]))
     
-    (define/public (apply-on-hit-effect curve)
+    (define/override (apply-on-hit-effect curve)
       (send powerup-clock start 10 #f)
       (set! affected-curves (cons curve affected-curves))
       ;For the left circle the x-pos is less than 300. This might have been done in
       ;a fancier way but this is super simple and effective.
-      (if (< (send curve get-x-pos) 300)
+      (if (< (send curve get-x-pos) (/ (- frame-width 250) 2))
           (send curve set-current-bitmap&dc-superpowerup);Sends the curve to the "back".
           (send curve set-current-bitmap&dc-default);Sends the curve to the "back".
           ))
