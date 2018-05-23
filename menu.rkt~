@@ -1,4 +1,0 @@
-#lang racket
-(define menu% (class object%
-                (init
-                 [bitmap 
