@@ -27,12 +27,12 @@
            ;Changes to the menu screen and sets the menu selector to new round if
            ;the round is over but not the game. If the game is over the selector
            ;is over them menu item "new game".
-;           (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
-;                  (send game-canvas set-show-menu! #t)
-;                  (send game-canvas set-menu-row! 0))
-;                 ((send gamestate1 round-over?)
-;                  (send game-canvas set-show-menu! #t)
-;                  (send game-canvas set-menu-row! 1)))
+           (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
+                  (send game-canvas set-show-menu! #t)
+                  (send game-canvas set-menu-row! 0))
+                 ((send gamestate1 round-over?)
+                  (send game-canvas set-show-menu! #t)
+                  (send game-canvas set-menu-row! 1)))
            ))))
 
 ;This is where the game is played
@@ -52,8 +52,8 @@
        [in-focus-draw-proc
         (lambda (dc y-pos x-pos)
           ;Only 2,3,4 or 5 players are allowed.
-          (cond ((< (send game-canvas get-menu-col) 1)
-                 (send game-canvas set-menu-col! 1))
+          (cond ((< (send game-canvas get-menu-col) 2)
+                 (send game-canvas set-menu-col! 2))
                 ((> (send game-canvas get-menu-col) 5)
                  (send game-canvas set-menu-col! 5)))
           (send dc draw-text
