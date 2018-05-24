@@ -1,19 +1,36 @@
 #lang racket/gui
+;The main file. This is where you run the game.
+;In this file:
+;This is where you run the game. The game is initiated here.
+;Objects of menu-item% are defined here.
+;The game-loop that runs the game is here.
+;At the end of this file you can change the framerate.
+
 (require "special-canvas.rkt")
 (require "Abstractions.rkt")
 (require "menu-item.rkt")
-(require "world-init.rkt")
+(require "gamestate.rkt")
 
-(define (drawing-proc canvas dc)
+;;The main window
+(define game-frame
+  (new frame%
+       (label "Achtung, die Kurve!")
+       (height frame-height)
+       (width frame-width)))
+(send game-frame show #t)
+
+(define gamestate1 (new gamestate%))
+
+(define (game-loop canvas dc)
   (let ((show-menu (send canvas show-menu?)))
     (cond (show-menu
-           (send gamestate1 display-score dc)
            (send gamestate1 draw-curves dc)
            (draw-playingfield-frame dc)
            ;Adds haze when the menu is active, looks nice.
            (send dc draw-bitmap haze-bitmap 0 0 'solid)
-           ;Displays endgame screen.
-           (send gamestate1 end-round/game? dc)
+           (send gamestate1 display-score dc)
+           ;Draws endgame screen if the game or round is over.
+           (send gamestate1 draw-end-screen dc)
            (send game-canvas draw-menu dc))
           (else
            (draw-playingfield-frame dc)
@@ -27,19 +44,19 @@
            ;Changes to the menu screen and sets the menu selector to new round if
            ;the round is over but not the game. If the game is over the selector
            ;is over them menu item "new game".
-           (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
-                  (send game-canvas set-show-menu! #t)
-                  (send game-canvas set-menu-row! 0))
-                 ((send gamestate1 round-over?)
-                  (send game-canvas set-show-menu! #t)
-                  (send game-canvas set-menu-row! 1)))
+           ;           (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
+           ;                  (send game-canvas set-show-menu! #t)
+           ;                  (send game-canvas set-menu-row! 0))
+           ;                 ((send gamestate1 round-over?)
+           ;                  (send game-canvas set-show-menu! #t)
+           ;                  (send game-canvas set-menu-row! 1)))
            ))))
 
 ;This is where the game is played
 (define game-canvas
   (new special-canvas%
        [parent game-frame]
-       [paint-callback drawing-proc]))
+       [paint-callback game-loop]))
 (send game-canvas set-canvas-background black)
 
 ;A menu item that lets you start a new game with a set number of players.
@@ -100,6 +117,7 @@
                            "on" "off")))
                 (+ x-pos 25) y-pos))]))
 
+;Let's you start a new game. Initiates the curves.
 (define new-game
   (new menu-item%
        [parent game-canvas]
@@ -121,8 +139,9 @@
        [parent game-canvas]
        [callback
         (lambda (arg)
-          (send gamestate1 new-round)
-          (send game-canvas set-show-menu! #f))]
+          (when (send gamestate1 curves-initiated?)
+            (send gamestate1 new-round)
+            (send game-canvas set-show-menu! #f)))]
        [in-focus-draw-proc
         (lambda (dc y-pos x-pos)
           (send dc draw-text "New round!" (+ x-pos 25) y-pos))]
@@ -143,5 +162,9 @@
        [notify-callback render-fn]
        [just-once? #f]))
 
-(send game-clock start 12 #f)
+;Sets focus to game-canvas.
 (send game-canvas focus)
+
+;Starting game-clock starts the game.
+;The game is then updated every 12 millisecounds.
+(send game-clock start 12 #f)

@@ -6,21 +6,30 @@
     (init-field color
                 [x-pos (random 100 700)];Where the powerup is drawn
                 [y-pos (random 100 (- frame-height 100))]
-                [spawn-countdown (random 1000 1300)]
+                ;The length of the whole life of the powerup if no one takes it.
+                [life-cycle-length 1000]
+                [variance 800]
+                ;Temporary variable for life-cycle-length that changes throughout
+                ;the life of the powerup, with a bit of variance so that it's not
+                ;too predictable and so that the powerups don't all spawn at the
+                ;same time.
+                [life-cycle-countdown (random life-cycle-length
+                                              (+ life-cycle-length variance))]
+                ;How long the effect lasts for a curve that takes the powerup.
                 [effect-duration 300]
-                [rarity 1000]
-                [spawn-duration 800]
-                [tmp-duration 800];How long the 
-                [affected-curve #f]
-                [powerup-bitmap (make-object bitmap% (- frame-width 200) (+ frame-height 40) #f 0.5)]
-                [powerup-dc (new bitmap-dc% [bitmap powerup-bitmap])])
+                ;How long the powerup is spawened before it despawns again.
+                [spawn-duration 800])
+    (field [tmp-effect-duration 800];How long the 
+           [affected-curve #f]
+           [powerup-bitmap (make-object bitmap% (- frame-width 200) (+ frame-height 40) #f 0.5)]
+           [powerup-dc (new bitmap-dc% [bitmap powerup-bitmap])])
 
     ;Resets the powerups when a new round starts. Removes the effect from the curves
     ;and removes the powerups from canvas.
     (define/public (new-round)
-      (set! tmp-duration 1)
+      (set! tmp-effect-duration 1)
       (send powerup-dc erase)
-      (set! spawn-countdown 0))
+      (set! life-cycle-countdown 0))
 
     ;Curves can collide with powerups regardless of which level they are on.
     (define/public (get-bitmap-dc bitmap-level)
@@ -41,50 +50,51 @@
             (- x-pos 12) (- y-pos 12) 30 30))
 
     ;Controls the spawn of the powerup.
-    ;Spawn-countdown is the entire cycle of the powerup, this is what
+    ;life-cycle-countdown is the entire cycle of the powerup, this is what
     ;changes during the life of the powerup.
     ;Spawn-duration is how long the powerup is spawned if no one takes it.
     (define/public (update dc)
-      (cond ((equal? spawn-countdown 0)
+      (cond ((equal? life-cycle-countdown 0)
              (reset-powerup)
-             (set! spawn-countdown (random rarity (+ rarity 300))))
-            ((< spawn-countdown spawn-duration)
+             (set! life-cycle-countdown (random life-cycle-length (+ life-cycle-length 300))))
+            ((< life-cycle-countdown spawn-duration)
              (send this draw-powerup dc)
-             (set! spawn-countdown (sub1 spawn-countdown)))
+             (set! life-cycle-countdown (sub1 life-cycle-countdown)))
             (else
-             (set! spawn-countdown (sub1 spawn-countdown)))))
+             (set! life-cycle-countdown (sub1 life-cycle-countdown)))))
     
     (define/public (apply-on-hit-effect curve)
-      (set! tmp-duration effect-duration)
+      (set! tmp-effect-duration effect-duration)
       (set! affected-curve curve)
       (reset-powerup)
-      (set! spawn-countdown (random rarity (+ rarity 300))))    
+      (set! life-cycle-countdown (random life-cycle-length
+                                         (+ life-cycle-length variance))))    
     (super-new)))
 
 ;Changes the size of the curve that takes it.
 (define size-powerup%
   (class powerup%
     (inherit-field effect-duration
-                   tmp-duration
+                   tmp-effect-duration
                    affected-curve
                    powerup-dc
                    x-pos
                    y-pos
-                   spawn-countdown
-                   rarity)
+                   life-cycle-countdown
+                   life-cycle-length)
     
     (define (effect-loop)
-      ;tmp-duration is the temporary variable that keeps track of how long
+      ;tmp-effect-duration is the temporary variable that keeps track of how long
       ;a curve has been affected with a powerup.
-      (set! tmp-duration (- tmp-duration 1))
-      (when (equal? tmp-duration 0)
+      (set! tmp-effect-duration (- tmp-effect-duration 1))
+      (when (equal? tmp-effect-duration 0)
         ;It has to move forward a bit because otherwise it collides with itself
         ;when the size is set to default.
         (send affected-curve set-x-pos (+ (send affected-curve get-x-pos)
                                           (* (/ (send affected-curve get-size) 2) (cos (send affected-curve get-angle)))))
         (send affected-curve set-y-pos (+ (send affected-curve get-y-pos)
                                           (* (/ (send affected-curve get-size) 2) (sin (send affected-curve get-angle)))))
-        (send affected-curve set-size! 7)))
+        (send affected-curve set-size! default-size)))
 
     ;This runs the effect-loop
     (define powerup-clock
@@ -102,18 +112,18 @@
 (define speed-powerup%
   (class powerup%
     (inherit-field effect-duration
-                   tmp-duration
+                   tmp-effect-duration
                    affected-curve
                    powerup-dc
                    x-pos
                    y-pos
-                   spawn-countdown
-                   rarity)
+                   life-cycle-countdown
+                   life-cycle-length)
     
     (define (effect-loop)
-      (set! tmp-duration (sub1 tmp-duration))
-      (when (equal? tmp-duration 0)
-        (send affected-curve set-speed! 3)))
+      (set! tmp-effect-duration (sub1 tmp-effect-duration))
+      (when (equal? tmp-effect-duration 0)
+        (send affected-curve set-speed! default-speed)))
     
     (define powerup-clock
       (new timer%
@@ -135,8 +145,8 @@
                    powerup-dc
                    x-pos
                    y-pos
-                   spawn-countdown
-                   rarity)
+                   life-cycle-countdown
+                   life-cycle-length)
     
     (define/override (apply-on-hit-effect curve)
       (super apply-on-hit-effect curve)
@@ -150,17 +160,17 @@
 (define collision-powerup%
   (class powerup%
     (inherit-field effect-duration
-                   tmp-duration
+                   tmp-effect-duration
                    affected-curve
                    powerup-dc
                    x-pos
                    y-pos
-                   spawn-countdown
-                   rarity)
+                   life-cycle-countdown
+                   life-cycle-length)
     
     (define (effect-loop)
-      (set! tmp-duration (sub1 tmp-duration))
-      (when (equal? tmp-duration 0)
+      (set! tmp-effect-duration (sub1 tmp-effect-duration))
+      (when (equal? tmp-effect-duration 0)
         (send affected-curve set-hole! #f)))
     
     (define powerup-clock
@@ -183,15 +193,15 @@
   (class powerup%
     (inherit-field effect-duration
                    affected-curve
-                   tmp-duration
+                   tmp-effect-duration
                    powerup-dc
                    color
                    x-pos
                    y-pos
                    powerup-bitmap
                    spawn-duration
-                   spawn-countdown
-                   rarity)
+                   life-cycle-countdown
+                   life-cycle-length)
     (init-field [affected-curves (list )];More than one curve can take this powerup.
                 [x-pos2 (- frame-width 440)];The powerup is displayed as two circles, these are the
                 ;coordinates for the second one.
@@ -201,24 +211,24 @@
       (send powerup-dc erase))
     
     (define/override (update dc)
-      (cond ((equal? spawn-countdown 0)
+      (cond ((equal? life-cycle-countdown 0)
              (reset-powerup)
-             (set! spawn-countdown (random rarity (+ rarity 300))))
-            ((< spawn-countdown spawn-duration)
+             (set! life-cycle-countdown (random life-cycle-length (+ life-cycle-length 300))))
+            ((< life-cycle-countdown spawn-duration)
              (send this draw-powerup dc)
              ;Now the powerup is on as long as the powerup is displayed on canvas.
              ;This way the powerup ends at the same time for all curves.
-             (set! tmp-duration spawn-countdown)
-             (set! spawn-countdown (sub1 spawn-countdown)))
+             (set! tmp-effect-duration life-cycle-countdown)
+             (set! life-cycle-countdown (sub1 life-cycle-countdown)))
             (else
-             (set! spawn-countdown (sub1 spawn-countdown)))))
+             (set! life-cycle-countdown (sub1 life-cycle-countdown)))))
 
     (define/override (draw-powerup dc)
       (send dc set-pen white 5 'solid)
       ;A countdown for how long the powerup is active is displayed to the right of
       ;the playing field.
       (send dc draw-line
-            (- frame-width 240) (* (- frame-height 10) (/ (- effect-duration spawn-countdown) effect-duration))
+            (- frame-width 240) (* (- frame-height 10) (/ (- effect-duration life-cycle-countdown) effect-duration))
             (- frame-width 240) (- frame-height 10))
       (send powerup-dc set-pen color 4 'xor)
       (send powerup-dc set-brush black 'transparent)
@@ -233,10 +243,10 @@
       (send dc draw-bitmap powerup-bitmap 0 0 'solid))
     
     (define (effect-loop)
-      (set! tmp-duration (- tmp-duration 1))
-      (when (equal? tmp-duration 0)
+      (set! tmp-effect-duration (- tmp-effect-duration 1))
+      (when (equal? tmp-effect-duration 0)
         (send powerup-dc erase)
-        (set! spawn-countdown (random rarity (+ rarity 300)))
+        (set! life-cycle-countdown (random life-cycle-length (+ life-cycle-length 300)))
         (map (lambda (x) (send x combine-bitmaps) (send x erase-superpowerup-dc))
              affected-curves);Combines the "back" and "front" bitmap so that all
         ;that's been drawn is now on the default "front" bitmap.

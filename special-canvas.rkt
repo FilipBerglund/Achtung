@@ -10,19 +10,26 @@
                 [menu-col 0])
     
     (define/override (on-char event)
-      
+
+      ;With this (together with key-handler) you can press several keys at the same time.
       (define key (send event get-key-code))
       (define release (send event get-key-release-code))
       (when (eq? release 'press)
         (key-down! key))
       (when (eq? key 'release)
         (key-up! release))
-      
+
+      ;Escape shows the menu.
       (when (equal? key 'escape)
         (set! show-menu #t))
-      
+
+      ;Space toggels the menu.
       (when (equal? key #\space)
         (set! show-menu (not show-menu)))
+
+      ;This function controls the menu. It can hover over menu-items (menu-item%)
+      ;and call the one that's in focus' activate function with the current column
+      ;as argument.
       (when show-menu
         (cond ((equal? key #\return)
                (send (list-ref menu-item-list menu-row) activate menu-col))
@@ -36,7 +43,8 @@
                (set! menu-col (sub1 menu-col)))
               ((equal? key 'right)
                (set! menu-col (add1 menu-col))))))
-    
+
+    ;Draws menu-item-list to dc.
     (define/public (draw-menu dc)
       (let ((y-pos (- frame-height 190))
             (x-pos (- frame-width 240)))
@@ -46,8 +54,11 @@
                (set! y-pos (+ y-pos 40)))
              menu-item-list)))
 
+    ;A menu-item% can ask if it's in focus. menu-item% has different drawing procs
+    ;depending on if it's in focus or not.
     (define/public (in-focus? a-menu-item)
       (eq? (list-ref menu-item-list menu-row) a-menu-item))
+    
     (define/public (set-menu-items! lst)
       (set! menu-item-list lst))
     (define/public (show-menu?)

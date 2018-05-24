@@ -1,4 +1,10 @@
 #lang racket/gui
+;In this file objects.
+
+
+
+
+
 (provide gamestate%)
 (require "curve.rkt")
 (require "powerup.rkt")
@@ -16,6 +22,7 @@
                           [color gray]
                           [x-pos 90]
                           [y-pos (- (/ frame-height 2) 60)]
+                          [variance 1]
                           [spawn-duration 1000]
                           [effect-duration 1000]))
 
@@ -26,13 +33,17 @@
      ;1 player is okay but then the function end-round/game? (in this file) needs
      ;to be modified so that the game clock isn't stoped when the game ends.
      [players (list )]
-     [input-keys
-      (list #\q #\w #\p #\å #\n #\m #\t #\y #\x #\c)]
+     [input-keys default-keys-list]
      ;The active powerups.
      [powerups (list speed-powerup
                      size-powerup
                      clear-powerup
-                     collision-powerup)])   
+                     collision-powerup)])
+
+    ;Returns #t if the curves are initiated, else #f.
+    (define/public (curves-initiated?)
+      (not (null? players)))
+    
     (define/public (set-superpowerup-on x)
       (if (equal? x 1)
           (set! powerups (cons superpowerup powerups))
@@ -111,7 +122,7 @@
         (set! players (sort players #:key (lambda (x) (send x get-score)) >))
         (map (lambda (x)
                (send dc set-text-foreground (send x get-color))
-               (send dc set-font a-font)
+               (send dc set-font big-font)
                (send dc draw-text
                      (string-join (list
                                    (number->string (send x get-score))
@@ -137,7 +148,7 @@
     
     ;Ends the round or the game. Displays nice things on the canvas.
     ;Also returns a boolean.
-    (define/public (end-round/game? dc)
+    (define/public (draw-end-screen dc)
       (send dc set-text-foreground white)
       (cond ((and (send this game-over?) (send this round-over?))
              (send dc draw-text "GAME OVER"

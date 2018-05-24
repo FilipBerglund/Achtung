@@ -5,37 +5,45 @@
 (define curve%
   (class object%
     (init-field
-     name;name of the curve. Used to display the winner at the end of the game.
-     left;The keyboard keys used to control the curve.
+     ;Name of the curve. Used to display the winner at the end of the game.
+     name
+     ;The keyboard keys used to control the curve.
+     left
      right
      curve_color
-     [collision-off #f]
-     [hole #f]
-     [hole-counter -80];Makes the curves start as a hole,
-     ;this way you avoid collitions before you have time to do anything.
-     [curve-size 7]
-     [collision-color1 (new color%)];Variables that are used to check for collisions.
-     [collision-color2 (new color%)]
-     [collision-color3 (new color%)]
      ;When initiated becomes the staring pos then it's the current pos.
      [x-pos (random 200 (- frame-width 450))]
-     [y-pos (random 200 (- frame-height 200))]
-     [x-vel 0]
-     [y-vel 0]
-     [speed 3];Speed is not the same as velocity so this is not superfluous
-     [dead #f]
-     [angle (random 0 1000)]
-     [score 0]
-     ;The curve keeps track of where it is and has been.
-     ;These are also used to draw to the canvas through the canvas dc.
-     [curve-bitmap (make-object bitmap% (- frame-width 250) (- frame-height 10) #f 0.5)]
-     [curve-dc (new bitmap-dc% [bitmap curve-bitmap])]
-     [superpowerup-bitmap (make-object bitmap% (- frame-width 250) (- frame-height 10) #f 0.5)]
-     [superpowerup-dc (new bitmap-dc% [bitmap superpowerup-bitmap])]
-     ;The active bitmap.
-     [current-bitmap curve-bitmap]
-     [current-dc curve-dc]
-     [current-bitmap-level 'level-1])
+     [y-pos (random 200 (- frame-height 200))])
+    (field [collision-off #f]
+           [hole #f]
+           ;Makes the curves start as a hole, this way you avoid collitions
+           ;before you have time to do anything.
+           [hole-counter -80]
+           ;default-size comes from "Abstractions.rkt"
+           [curve-size default-size]
+           ;Variables that are used to check for collisions.
+           [collision-color1 (new color%)]
+           [collision-color2 (new color%)]
+           [collision-color3 (new color%)]
+           [x-vel 0]
+           [y-vel 0]
+           ;Speed is not the same as velocity so this is not superfluous.
+           ;Default speed can be changed in "Abstractions.rkt".
+           [speed default-speed]
+           [dead #f]
+           [angle (random 0 1000)]
+           [score 0]
+           ;The curve keeps track of where it is and has been.
+           ;These are also used to draw to the canvas through the canvas dc.
+           [curve-bitmap (make-object bitmap% (- frame-width 250) (- frame-height 10) #f 0.5)]
+           [curve-dc (new bitmap-dc% [bitmap curve-bitmap])]
+           [superpowerup-bitmap (make-object bitmap% (- frame-width 250) (- frame-height 10) #f 0.5)]
+           [superpowerup-dc (new bitmap-dc% [bitmap superpowerup-bitmap])]
+           ;The active bitmap. The bitmap that the curve will draw to when it's
+           ;not a hole.
+           [current-bitmap curve-bitmap]
+           [current-dc curve-dc]
+           [current-bitmap-level 'level-1])
 
     ;The superpowerup is trasparent so that the player knows which one they are on.
     ;For some reason you can't do this in the initination of the object.
@@ -142,9 +150,11 @@
                   (not (white? collision-color3)))
           (send another-object apply-on-hit-effect this))))
 
-    (define/public (update-pos) ;;Updates position.
+    ;Updates the position and checks if it's within the game-screens borders.
+    (define/public (update-pos)
       ;Because the collisions detection is dependent on the curve-size this has to be
-      ;so too. Regarless of collision status you die when you go beyond the screen boarders.
+      ;so too. Regarless of whether or not collision-off is true you die when you go
+      ;beyond the screen borders.
       (when (or (< (- frame-width 253) (+ (+ x-pos x-vel) (/ curve-size 2)))
                 (> 13  (- (+ x-pos x-vel) (/ curve-size 2)))
                 (< (- frame-height 13) (+ (+ y-pos y-vel) (/ curve-size 2)))
@@ -158,14 +168,18 @@
       (set! speed x))
     (define/public (set-size! x)
       (set! curve-size x))
-    (define/public (died?)
-      (died))
-    (define died
+
+    ;Checks if the curve died by checking if it's dead but wasn't dead the previous
+    ;time it was called.
+    (define died-helper
       (let ((prev #f))
         (lambda ()
           (cond ((equal? dead prev) #f)
                 ((not dead) (set! prev dead) #f)
                 (else (set! prev dead) #t)))))   
+    (define/public (died?)
+      (died-helper))
+    
     
     (define/public (get-x-vel) x-vel)
     (define/public (get-y-vel) y-vel)
@@ -180,30 +194,37 @@
     (define/public (get-color) curve_color)
     
     (define/public (set-dead! x) (set! dead x))
+    
     (define/public (set-collision! x) (set! collision-off x))
     (define/public (set-hole! x) (set! hole x))
+    
     (define/public (addscore) (set! score (add1 score)))
     (define/public (get-score) score)
     (define/public (reset-score!)
       (set! score 0))
+    
     (define/public (get-name) name)
+    
     (define/public (get-bitmap-level)
       current-bitmap-level)
     (define/public (set-bitmap-level! level)
       (set! current-bitmap-level level))
+    
     (define/public (set-current-bitmap&dc-default)
       (set! current-bitmap curve-bitmap)
       (set! current-dc curve-dc)
       (set! current-bitmap-level 'level-1))
+    
     (define/public (set-current-bitmap&dc-superpowerup)
       (set! current-bitmap superpowerup-bitmap)
       (set! current-dc superpowerup-dc)
       (set! current-bitmap-level 'level-2))
+    
     (define/public (combine-bitmaps)
-      ;Doesn't get much uglier than this lol. I don't know how else to do it though.
+      ;Doesn't get much uglier than this. I don't know how else to do it though.
       ;I can't seem to find a way to change the alpha of things that are already drawn
-      ;to a bitmap. This also introduces a lag when this function is called at the end
-      ;of the superpowerup powerup.
+      ;to a bitmap. This also introduces a very slight lag when this function is called
+      ;at the end by the superpowerup powerup (super-powerup% in powerup.rkt).
       (send curve-dc draw-bitmap superpowerup-bitmap 0 0 'solid)
       (send curve-dc draw-bitmap superpowerup-bitmap 0 0 'solid)
       (send curve-dc draw-bitmap superpowerup-bitmap 0 0 'solid)
@@ -222,9 +243,10 @@
       [set! dead #f]
       [send curve-dc erase]
       [send superpowerup-dc erase]
-      (hole?);Calling this funktion fixes the issue where the collision-powerup
-      ;doesn't reset. This is because the powerup sets hole to #t and that in turn
-      ;sets hole-counter to 20. If that happens after the curve is reseted the
-      ;hole-counter is 20.
+      ;Calling this funktion fixes the issue where the collision-powerup% in powerup.rkt
+      ;doesn't reset properly. This is because the collision-powerup% sets hole to #t and 
+      ;that in turn sets hole-counter to 20. If that happens after the curve is reseted the
+      ;by calling this function hole-counter is 20.
+      (hole?)
       [set! hole-counter -80])
     (super-new)))
