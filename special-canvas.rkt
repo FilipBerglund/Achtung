@@ -12,8 +12,11 @@
 ;menu-item is selected. special-canvas% is responsible for the
 ;positioning and spacing of the menu, and the operations on the menu."
 
+;2018-05-23: Fixed so that the menu moves to where it should be when the
+;frame-height and frame-width changes.
+
 (require "keyhandler.rkt")
-(require "Abstractions.rkt")
+(require "settings.rkt")
 (provide special-canvas%)
 (define special-canvas%
   (class canvas%
@@ -23,7 +26,6 @@
                 [menu-col 0])
     
     (define/override (on-char event)
-
       ;With this (together with key-handler) you can press several keys at the same time.
       (define key (send event get-key-code))
       (define release (send event get-key-release-code))
@@ -31,18 +33,15 @@
         (key-down! key))
       (when (eq? key 'release)
         (key-up! release))
-
       ;Escape shows the menu.
       (when (equal? key 'escape)
         (set! show-menu #t))
-
       ;Space toggels the menu.
       (when (equal? key #\space)
         (set! show-menu (not show-menu)))
-
-      ;This function controls the menu. It can hover over menu-items (menu-item%)
-      ;and call the one that's in focus' activate function with the current column
-      ;as argument.
+      ;This controls the menu once it's shown. It can hover over menu-items
+      ;(menu-item%) and call the one that's in focus' activate function with the
+      ;current column as argument.
       (when show-menu
         (cond ((equal? key #\return)
                (send (list-ref menu-item-list menu-row) activate menu-col))
@@ -58,6 +57,7 @@
                (set! menu-col (add1 menu-col))))))
 
     ;Draws menu-item-list to dc.
+    ;IN: a-dc OUT: void.
     (define/public (draw-menu dc)
       (let ((y-pos (- frame-height 190))
             (x-pos (- frame-width 240)))
@@ -69,21 +69,36 @@
 
     ;A menu-item% can ask if it's in focus. menu-item% has different drawing procs
     ;depending on if it's in focus or not.
+    ;IN: menu-item% OUT: bool
     (define/public (in-focus? a-menu-item)
       (eq? (list-ref menu-item-list menu-row) a-menu-item))
-    
+
+    ;Sets which menu-items are in the menu.
+    ;IN: list of menu-item%
     (define/public (set-menu-items! lst)
       (set! menu-item-list lst))
+
+    ;OUT: bool
     (define/public (show-menu?)
       show-menu)
+
+    ;IN: bool
     (define/public (set-show-menu! x)
       (set! show-menu x))
+
+    ;OUT: int
     (define/public (get-menu-row)
       menu-row)
+    
+    ;OUT: int
     (define/public (get-menu-col)
       menu-col)
+    
+    ;IN: int
     (define/public (set-menu-row! row)
       (set! menu-row row))
+    
+    ;IN: int
     (define/public (set-menu-col! col)
       (set! menu-col col))
     (super-new)))

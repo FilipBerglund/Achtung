@@ -3,17 +3,18 @@
 ;The main file. This is where you run the game.
 ;In this file:
 ;The game is initiated here.
-;Mostly you'll find user
 ;Objects of menu-item% are defined here.
 ;The game-loop that runs the game is here.
-;At the end of this file you can change the framerate.
+
+;2018-05-24: Moved a few drawing settings from menu-item% init-field
+;to draw-menu-item in menu-item.rkt.
 
 (require "special-canvas.rkt")
-(require "Abstractions.rkt")
+(require "settings.rkt")
 (require "menu-item.rkt")
 (require "gamestate.rkt")
 
-;;The main window
+;The main window
 (define game-frame
   (new frame%
        (label "Achtung, die Kurve!")
@@ -21,8 +22,13 @@
        (width frame-width)))
 (send game-frame show #t)
 
+;Creates a new gamestate%, the curve%'s are contained in gamestate1 but are initiated
+;later in the menu when the game is running. There you can select how many
+;curves/players you want.
 (define gamestate1 (new gamestate%))
 
+;The main loop. Updates the game, and draws everything to the canvas.
+;Does one thing if the menu is active and another if it's not.
 (define (game-loop canvas dc)
   (let ((show-menu (send canvas show-menu?)))
     (cond (show-menu
@@ -46,13 +52,12 @@
            ;Changes to the menu screen and sets the menu selector to new round if
            ;the round is over but not the game. If the game is over the selector
            ;is over them menu item "new game".
-;                      (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
-;                             (send game-canvas set-show-menu! #t)
-;                             (send game-canvas set-menu-row! 0))
-;                            ((send gamestate1 round-over?)
-;                             (send game-canvas set-show-menu! #t)
-;                             (send game-canvas set-menu-row! 1)))
-           ))))
+           (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
+                  (send game-canvas set-show-menu! #t)
+                  (send game-canvas set-menu-row! 0))
+                 ((send gamestate1 round-over?)
+                  (send game-canvas set-show-menu! #t)
+                  (send game-canvas set-menu-row! 1)))))))
 
 ;This is where the game is played
 (define game-canvas
@@ -66,6 +71,7 @@
   (new menu-item%
        [parent game-canvas]
        [callback
+        ;IN int
         (lambda (arg)
           (send gamestate1 set-number-of-players arg))]
        [in-focus-draw-proc
@@ -110,7 +116,6 @@
                        (if (equal? (send game-canvas get-menu-col) 0)
                            "off" "on"))) (+ x-pos 25) y-pos))]
        [draw-proc
-        ;If not in focus this function runs and displays the selected setting.
         (lambda (dc y-pos x-pos)
           (send dc draw-text
                 (string-join
@@ -124,6 +129,7 @@
   (new menu-item%
        [parent game-canvas]
        [callback
+        ;IN any/c
         (lambda (arg)
           (send gamestate1 make-curves)
           (send gamestate1 new-round);For some reason it lags when this isn't here.
@@ -140,6 +146,7 @@
   (new menu-item%
        [parent game-canvas]
        [callback
+        ;IN any/c
         (lambda (arg)
           (when (send gamestate1 curves-initiated?)
             (send gamestate1 new-round)
@@ -151,6 +158,9 @@
         (lambda (dc y-pos x-pos)
           (send dc draw-text "New round!" (+ x-pos 25) y-pos))]))
 
+;Sets the menu items in the menu-item-list of game-canvas.
+;The order of the items in this list defines which order
+;the menu items appear on game-canvas.
 (send game-canvas set-menu-items!
       (list new-game new-round number-of-players superpowerup-toggle))
 
@@ -166,8 +176,10 @@
 
 
 ;Starting game-clock starts the game.
-;The game is then updated every 12 millisecounds.
-(send game-clock start 12 #f)
+;The game is then updated every frametime milliseconds,
+;can be changed in settings.rkt.
+(send game-clock start frametime #f)
 
-;Sets focus to game-canvas.
+;Sets focus to game-canvas, so you don't have to press the frame
+;everytime you start the game.
 (send game-canvas focus)

@@ -7,8 +7,10 @@
 ;how it should draw itself, etc etc. It can check if it's collided with other objects
 ;in the game.
 
+;2018-05-24: Moved things from init-field to field.
+
 (require "keyhandler.rkt")
-(require "Abstractions.rkt")
+(require "settings.rkt")
 (provide curve%)
 (define curve%
   (class object%
@@ -27,7 +29,7 @@
            ;Makes the curves start as a hole, this way you avoid collitions
            ;before you have time to do anything.
            [hole-counter -80]
-           ;default-size comes from "Abstractions.rkt"
+           ;default-size comes from "settings.rkt"
            [curve-size default-size]
            ;Variables that are used to check for collisions.
            [collision-color1 (new color%)]
@@ -36,7 +38,7 @@
            [x-vel 0]
            [y-vel 0]
            ;Speed is not the same as velocity so this is not superfluous.
-           ;Default speed can be changed in "Abstractions.rkt".
+           ;Default speed can be changed in "settings.rkt".
            [speed default-speed]
            [dead #f]
            [angle (random 0 1000)]
@@ -61,14 +63,15 @@
     ;This funtion is also defined in all subclasses of powerup%.
     ;Takes a curve% or powerup% and returns it's bitmap. In the case of curves
     ;it returns the bitmap that is on bitmap-level.
+    ;IN: symbol OUT: bitmap
     (define/public (get-bitmap-dc bitmap-level)
       (if (equal? bitmap-level 'level-1)
           curve-dc
           superpowerup-dc))
 
     ;This is called everytime the curve is drawn, after a random number of
-    ;frames the curve stops drawing itself for a set number of frames. Returns a
-    ;boolean.
+    ;frames the curve stops drawing itself for a set number of frames.
+    ;IN: void OUT: bool
     (define hole?
       (let ((length 20))
         (lambda ()
@@ -84,7 +87,8 @@
                       ;between the holes.
                       (set! hole-counter 0))))))
 
-    ;Draws the bitmaps of the curve to dc.
+    ;Draws the bitmaps of the curve to dc. It has different drawing
+    ;procs based on if it's a hole or not but also whether or not it's dead.
     (define/public (draw-curve dc)
       (cond (dead (send dc draw-bitmap curve-bitmap 0 0 'solid)
                   (send dc draw-bitmap superpowerup-bitmap 0 0 'solid)
@@ -106,7 +110,8 @@
              (send dc draw-bitmap curve-bitmap 0 0 'solid)
              (send dc draw-bitmap superpowerup-bitmap 0 0 'solid)
              (set! collision-off #f))))
-    
+
+    ;OUT: bool
     (define/public (get-dead)
       dead)
 
@@ -121,11 +126,12 @@
       ;direction.
       (set! y-vel (* speed (sin angle))))
 
-    ;Not pretty I know.
+    ;IN: void OUT: bool
     (define/public (get-collision-on?)
       (not collision-off))
 
-    ;This is what 
+    ;If a curve collides with another curve then it dies.
+    ;IN: curve% OUT: void
     (define/public (apply-on-hit-effect x)
       (when (send x get-collision-on?)
         (send x set-dead! #t)))
@@ -133,6 +139,7 @@
     ;Checks if the curve will collide with another-curve.
     ;It does this by looking at the other game objects curve-bitmap and if that is
     ;colored it runs that objects apply-on-hit-effect.
+    ;IN: curve% or subclass of powerup%, symbol OUT: void.
     (define/public (collision? another-object bitmap-level)
       ;You can only collide with curves on your bitmap level
       ;Gets the color of three pixels where this curve wants to move to.
@@ -158,7 +165,7 @@
                   (not (white? collision-color3)))
           (send another-object apply-on-hit-effect this))))
 
-    ;Updates the position and checks if it's within the game-screens borders.
+    ;Updates the position and checks if it's within the game screen's borders.
     (define/public (update-pos)
       ;Because the collisions detection is dependent on the curve-size this has to be
       ;so too. Regarless of whether or not collision-off is true you die when you go
@@ -172,8 +179,10 @@
         (set! x-pos (+ x-pos x-vel))
         (set! y-pos (+ y-pos y-vel))))
 
+    ;IN int
     (define/public (set-speed! x)
       (set! speed x))
+    ;IN int
     (define/public (set-size! x)
       (set! curve-size x))
 
@@ -184,50 +193,68 @@
         (lambda ()
           (cond ((equal? dead prev) #f)
                 ((not dead) (set! prev dead) #f)
-                (else (set! prev dead) #t)))))   
+                (else (set! prev dead) #t)))))
+    ;IN void OUT: bool
     (define/public (died?)
       (died-helper))
     
-    
+    ;OUT: int
     (define/public (get-x-vel) x-vel)
     (define/public (get-y-vel) y-vel)
     (define/public (get-x-pos) x-pos)
     (define/public (get-y-pos) y-pos)
-    
+
+    ;IN int
     (define/public (set-x-pos x) (set! x-pos x))
     (define/public (set-y-pos y) (set! y-pos y))
-    
+
+    ;OUT: float
     (define/public (get-angle) angle)
+    ;OUT int
     (define/public (get-size) curve-size)
+    ;OUT color%
     (define/public (get-color) curve_color)
-    
+
+    ;IN: bool
     (define/public (set-dead! x) (set! dead x))
-    
+
+    ;IN: bool
     (define/public (set-collision! x) (set! collision-off x))
     (define/public (set-hole! x) (set! hole x))
-    
+
+    ;IN: int
     (define/public (addscore) (set! score (add1 score)))
+    ;OUT: int
     (define/public (get-score) score)
+    ;IN: void OUT: void
     (define/public (reset-score!)
       (set! score 0))
-    
+
+    ;OUT: string
     (define/public (get-name) name)
-    
+
+    ;OUT: symbol
     (define/public (get-bitmap-level)
       current-bitmap-level)
+    ;IN symbol
     (define/public (set-bitmap-level! level)
       (set! current-bitmap-level level))
-    
+
+    ;IN: void OUT: void
     (define/public (set-current-bitmap&dc-default)
       (set! current-bitmap curve-bitmap)
       (set! current-dc curve-dc)
       (set! current-bitmap-level 'level-1))
-    
+
+    ;IN: void OUT: void
     (define/public (set-current-bitmap&dc-superpowerup)
       (set! current-bitmap superpowerup-bitmap)
       (set! current-dc superpowerup-dc)
       (set! current-bitmap-level 'level-2))
-    
+
+    ;Combines the superpowerup-bitmap with the curve-bitmap by drawing the
+    ;superpowerup-bitmap to curve-dc.
+    ;IN: void OUT: void
     (define/public (combine-bitmaps)
       ;Doesn't get much uglier than this. I don't know how else to do it though.
       ;I can't seem to find a way to change the alpha of things that are already drawn
@@ -240,10 +267,16 @@
       (send curve-dc draw-bitmap superpowerup-bitmap 0 0 'solid)
       (send curve-dc draw-bitmap superpowerup-bitmap 0 0 'solid)
       (send curve-dc draw-bitmap superpowerup-bitmap 0 0 'solid))
+
+    ;IN: void OUT: void
     (define/public (erase-superpowerup-dc)
       (send superpowerup-dc erase))
+    ;IN: void OUT: void
     (define/public (erase-current-dc)
       (send current-dc erase))
+    
+    ;Resets the relevant variables.
+    ;IN: void OUT: void
     (define/public (new-round)
       [set! x-pos (random 200 (- frame-width 450))]
       [set! y-pos (random 200 (- frame-height 200))]

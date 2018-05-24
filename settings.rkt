@@ -1,12 +1,17 @@
 #lang racket/gui
 ;Writen by: FILIP BERGLUND
-;In this file are all general settings for the game. Except those for the menu.
-;Also some abstractions to make the code a bit neater and some appearance settings.
+;In this file are all general settings for the game. Except some for the the menu
+;and the powerups. Also some abstractions to make the code a bit neater and some
+;appearance settings.
+
+;2018-05-24: Added default-size and default-speed.
+;2018-05-24: Changed filename from Abstractions to settings.
 
 (provide (all-defined-out))
 
 ;Converts float to int, is used when looking at a pixel
 ;from a bitmap, in curve% (curve.rkt).
+;IN: float OUT: int
 (define (float->int x)
   (inexact->exact (round x)))
 
@@ -19,7 +24,8 @@
                           #:style 'italic
                           #:hinting 'aligned)) 
 
-;Checks if a color% is white, returns a boolean.
+;Checks if a color% is white.
+;IN: color% OUT: bool
 (define (white? color)
   (not
    (or (not (equal? (send color red) 255))
@@ -59,9 +65,14 @@
 (define frame-height 800)
 ;It works without the superpowerup on when width is as low as 651 but
 ;the superpowerup works badly. Recomended lowest is 700.
-(define frame-width 1050)
+(define frame-width 1450)
 
-;Draws a frame around the playing field so that you know there you're allowed to go.
+;How often the game updates. (How often the game-loop in main.rkt runs).
+(define frametime 12) 
+
+;Draws a frame to dc around the playing field so that you know there you're
+;allowed to go.
+;IN: a-dc OUT: void.
 (define (draw-playingfield-frame dc)
   (send dc set-pen yellow 6 'solid)
   (send dc draw-line 10 (- frame-height 10) 10 10)
