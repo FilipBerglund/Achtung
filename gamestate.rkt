@@ -1,9 +1,11 @@
 #lang racket/gui
-;In this file objects.
-
-
-
-
+;Writen by: FILIP BERGLUND.
+;Here powerups are initiated. gamestate% organizes the curves of the
+;game. Gives out points to curves. Checks if the game/round is over,
+;has a function to draw a scoreboard. Checks collisions between objects in the
+;game. Has functions to map update velocity, position, draw etc to all curves.
+;Because gamestate% is a class you can easily implement functions to be able
+;to have stored games and a active game.
 
 (provide gamestate%)
 (require "curve.rkt")

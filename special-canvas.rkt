@@ -1,4 +1,17 @@
 #lang racket/gui
+;Writen by: FILIP BERGLUND, KRISTOFFER BRANDER.
+;In this file is a special-canvas% that has support for a menu using
+;menu-item% (menu-item.rkt). It also supports several keypresses by
+;storing key-events in a hash in "keyhandler.rkt".
+
+;From menu-item.rkt:
+;"This class is part of a menu system.
+;The other part is in special-canvas% (special-canvas.rkt).
+;menu-item% is responsible for the text that is drawn when it's
+;drawn to canvas, and for the function that's called when the
+;menu-item is selected. special-canvas% is responsible for the
+;positioning and spacing of the menu, and the operations on the menu."
+
 (require "keyhandler.rkt")
 (require "Abstractions.rkt")
 (provide special-canvas%)

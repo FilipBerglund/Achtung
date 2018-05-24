@@ -1,6 +1,8 @@
 #lang racket/gui
+;Writen by: FILIP BERGLUND
 ;In this file are all general settings for the game. Except those for the menu.
 ;Also some abstractions to make the code a bit neater and some appearance settings.
+
 (provide (all-defined-out))
 
 ;Converts float to int, is used when looking at a pixel
@@ -54,10 +56,10 @@
 
 ;It can work with smaler height but 600 is just enough
 ;to fit the menu under the scoreboard when playing 5 players.
-(define frame-height 600)
+(define frame-height 800)
 ;It works without the superpowerup on when width is as low as 651 but
 ;the superpowerup works badly. Recomended lowest is 700.
-(define frame-width 1700)
+(define frame-width 1050)
 
 ;Draws a frame around the playing field so that you know there you're allowed to go.
 (define (draw-playingfield-frame dc)

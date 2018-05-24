@@ -1,7 +1,9 @@
 #lang racket/gui
+;Writen by: FILIP BERGLUND
 ;The main file. This is where you run the game.
 ;In this file:
-;This is where you run the game. The game is initiated here.
+;The game is initiated here.
+;Mostly you'll find user
 ;Objects of menu-item% are defined here.
 ;The game-loop that runs the game is here.
 ;At the end of this file you can change the framerate.
@@ -44,12 +46,12 @@
            ;Changes to the menu screen and sets the menu selector to new round if
            ;the round is over but not the game. If the game is over the selector
            ;is over them menu item "new game".
-           ;           (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
-           ;                  (send game-canvas set-show-menu! #t)
-           ;                  (send game-canvas set-menu-row! 0))
-           ;                 ((send gamestate1 round-over?)
-           ;                  (send game-canvas set-show-menu! #t)
-           ;                  (send game-canvas set-menu-row! 1)))
+;                      (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
+;                             (send game-canvas set-show-menu! #t)
+;                             (send game-canvas set-menu-row! 0))
+;                            ((send gamestate1 round-over?)
+;                             (send game-canvas set-show-menu! #t)
+;                             (send game-canvas set-menu-row! 1)))
            ))))
 
 ;This is where the game is played
@@ -162,9 +164,10 @@
        [notify-callback render-fn]
        [just-once? #f]))
 
-;Sets focus to game-canvas.
-(send game-canvas focus)
 
 ;Starting game-clock starts the game.
 ;The game is then updated every 12 millisecounds.
 (send game-clock start 12 #f)
+
+;Sets focus to game-canvas.
+(send game-canvas focus)

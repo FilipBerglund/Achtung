@@ -1,4 +1,7 @@
 #lang racket/gui
+;Writen by: FILIP BERGLUND
+;In this file powerup% and it's subclasses are defined.
+
 (require "Abstractions.rkt")
 (provide size-powerup% speed-powerup% clear-powerup% collision-powerup% super-powerup%)
 (define powerup%

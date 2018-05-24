@@ -1,4 +1,12 @@
 #lang racket/gui
+;Writen by: FILIP BERGLUND
+;The class curve% is defined here. This class defines the curve the player
+;controls when playing the game. Functions on the set of all curves in a game are
+;defined in gamestate% (gamestate.rkt).
+;curve% keeps track of (among several other things) where it's been, if it's dead,
+;how it should draw itself, etc etc. It can check if it's collided with other objects
+;in the game.
+
 (require "keyhandler.rkt")
 (require "Abstractions.rkt")
 (provide curve%)
