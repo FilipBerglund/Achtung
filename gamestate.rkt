@@ -11,26 +11,13 @@
 ;(previosly named game-over?, end-round? and end-round/game?) interact
 ;with each other.
 
+;2018-05-25: Now the powerups are initiated in gamestate, so now the whole
+;"gamestate" is encapsulated in gamestate%.
+
 (provide gamestate%)
 (require "curve.rkt")
 (require "powerup.rkt")
 (require "settings.rkt")
-
-(define speed-powerup (new speed-powerup%
-                           [color red]))
-(define size-powerup (new size-powerup%
-                          [color green]))
-(define clear-powerup (new clear-powerup%
-                           [color actual-blue]))
-(define collision-powerup (new collision-powerup%
-                               [color yellow]))
-(define superpowerup (new super-powerup%
-                          [color gray]
-                          [x-pos 90]
-                          [y-pos (- (/ frame-height 2) 60)]
-                          [variance 1]
-                          [spawn-duration 1000]
-                          [effect-duration 1000]))
 
 (define gamestate%
   (class object%
@@ -40,10 +27,21 @@
      [players (list )]
      [input-keys default-keys-list]
      ;The active powerups. The superpowerup is off by default.
-     [powerups (list speed-powerup
-                     size-powerup
-                     clear-powerup
-                     collision-powerup)])
+     [powerups (list (new speed-powerup%
+                           [color red])
+                     (new size-powerup%
+                          [color green])
+                     (new clear-powerup%
+                           [color actual-blue])
+                     (new collision-powerup%
+                               [color yellow]))]
+     [superpowerup (new super-powerup%
+                          [color gray]
+                          [x-pos 90]
+                          [y-pos (- (/ frame-height 2) 60)]
+                          [variance 1]
+                          [spawn-duration 1000]
+                          [effect-duration 1000])])
 
     ;Returns #t if the curves are initiated, else #f.
     ;OUT: bool
