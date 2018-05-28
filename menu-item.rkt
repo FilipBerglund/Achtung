@@ -1,5 +1,5 @@
 #lang racket/gui
-;Writen by: FILIP BERGLUND
+;Written by: FILIP BERGLUND
 ;menu-item% is defined here. This class is part of a menu system.
 ;The other part is in special-canvas% (special-canvas.rkt).
 ;menu-item% is responsible for the text that is drawn when it's

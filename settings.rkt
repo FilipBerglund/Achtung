@@ -1,5 +1,5 @@
 #lang racket/gui
-;Writen by: FILIP BERGLUND
+;Written by: FILIP BERGLUND
 ;In this file are all general settings for the game. Except some for the the menu
 ;and the powerups. Also some abstractions to make the code a bit neater and some
 ;appearance settings.
@@ -53,19 +53,19 @@
 
 ;The default keys to control the curves. Q W for the first curve and so on.
 (define default-keys-list
-  (list #\q #\w #\p #\å #\n #\m #\t #\y #\x #\c))
+  (list #\q #\w #\o #\p #\n #\m #\t #\y #\x #\c))
 
 ;Default speed and size of the curves. These are set when the curves are created
 ;and when powerups reset they can set the size or speed to default.
 (define default-speed 3)
 (define default-size 7)
 
-;It can work with smaler height but 600 is just enough
+;It can work with smaller height but 600 is just enough
 ;to fit the menu under the scoreboard when playing 5 players.
-(define frame-height 800)
+(define frame-height 600)
 ;It works without the superpowerup on when width is as low as 651 but
-;the superpowerup works badly. Recomended lowest is 700.
-(define frame-width 1450)
+;the superpowerup works badly. Recommended lowest is 700.
+(define frame-width 1050)
 
 ;How often the game updates. (How often the game-loop in main.rkt runs).
 (define frametime 12) 

@@ -1,5 +1,5 @@
 #lang racket/gui
-;Writen by: FILIP BERGLUND.
+;Written by: FILIP BERGLUND.
 ;Here powerups are initiated. gamestate% organizes the curves of the
 ;game. Gives out points to curves. Checks if the game/round is over,
 ;has a function to draw a scoreboard. Checks collisions between objects in the
@@ -8,7 +8,7 @@
 ;to have stored games and a active game.
 
 ;2018-05-24: Restructured how game-over?, end-round? and draw-end-screen
-;(previosly named game-over?, end-round? and end-round/game?) interact
+;(previously named game-over?, end-round? and end-round/game?) interact
 ;with each other.
 
 ;2018-05-25: Now the powerups are initiated in gamestate, so now the whole
@@ -97,7 +97,7 @@
                   players))
            players))
 
-    ;Checks collitions with powerups. Works even when collition is off.
+    ;Checks collisions with powerups. Works even when collision is off.
     ;IN: void OUT: void
     (define/public (check-powerups)
       (map (lambda (a-curve)
