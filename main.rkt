@@ -29,35 +29,49 @@
 
 ;The main loop. Updates the game, and draws everything to the canvas.
 ;Does one thing if the menu is active and another if it's not.
-(define (game-loop canvas dc)
-  (let ((show-menu (send canvas show-menu?)))
-    (cond (show-menu
-           (send gamestate1 draw-curves dc)
-           (draw-playingfield-frame dc)
-           ;Adds haze when the menu is active, looks nice.
-           (send dc draw-bitmap haze-bitmap 0 0 'solid)
-           (send gamestate1 display-score dc)
-           ;Draws endgame screen if the game or round is over.
-           (send gamestate1 draw-end-screen dc)
-           (send game-canvas draw-menu dc))
-          (else
-           (draw-playingfield-frame dc)
-           (send gamestate1 update-velocities)
-           (send gamestate1 draw-powerups dc)
-           (send gamestate1 draw-curves dc)
-           (send gamestate1 update-positions)
-           (send gamestate1 check-collisions)
-           (send gamestate1 display-score dc)
-           (send gamestate1 check-powerups)
-           ;Changes to the menu screen and sets the menu selector to new round if
-           ;the round is over but not the game. If the game is over the selector
-           ;is over them menu item "new game".
-           (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
-                  (send game-canvas set-show-menu! #t)
-                  (send game-canvas set-menu-row! 0))
-                 ((send gamestate1 round-over?)
-                  (send game-canvas set-show-menu! #t)
-                  (send game-canvas set-menu-row! 1)))))))
+(define game-loop
+  (let ([startTime (current-inexact-milliseconds)]
+        [frames 0]
+        [fps 60])
+    (lambda (canvas dc)
+      (let ([show-menu (send canvas show-menu?)]
+            [ellapsedTime (- (current-inexact-milliseconds) startTime)])  
+        (cond (show-menu
+               (send gamestate1 draw-curves dc)
+               (draw-playingfield-frame dc)
+               ;Adds haze when the menu is active, looks nice.
+               (send dc draw-bitmap haze-bitmap 0 0 'solid)
+               (send gamestate1 display-score dc)
+               ;Draws endgame screen if the game or round is over.
+               (send gamestate1 draw-end-screen dc)
+               (send game-canvas draw-menu dc))
+              (else
+               (draw-playingfield-frame dc)
+               (send gamestate1 update-velocities)
+               (send gamestate1 draw-powerups dc)
+               (send gamestate1 draw-curves dc)
+               (send gamestate1 update-positions)
+               (send gamestate1 check-collisions)
+               (send gamestate1 display-score dc)
+               (send gamestate1 check-powerups)
+               ;Changes to the menu screen and sets the menu selector to new round if
+               ;the round is over but not the game. If the game is over the selector
+               ;is over the menu item "new game".
+               (cond ((and (send gamestate1 game-over?) (send gamestate1 round-over?))
+                      (send game-canvas set-show-menu! #t)
+                      (send game-canvas set-menu-row! 0))
+                     ((send gamestate1 round-over?)
+                      (send game-canvas set-show-menu! #t)
+                      (send game-canvas set-menu-row! 1)))))
+        (send dc set-font standard-font)
+        (send dc set-text-foreground light-gray)
+        (set! frames (add1 frames))
+        (send dc draw-text (string-join (list "FPS:" (~a fps)))
+              (- frame-width 65) (- frame-height 25))
+        (when (= frames 10)
+          (set! fps (float->int (* 1000 (/ frames ellapsedTime))))
+          (set! frames 0)
+          (set! startTime (current-inexact-milliseconds)))))))
 
 ;This is where the game is played
 (define game-canvas
