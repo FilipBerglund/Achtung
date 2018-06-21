@@ -1,5 +1,5 @@
 #lang racket/gui
-;Writen by: FILIP BERGLUND, KRISTOFFER BRANDER.
+;Written by: FILIP BERGLUND, KRISTOFFER BRANDER.
 ;In this file is a special-canvas% that has support for a menu using
 ;menu-item% (menu-item.rkt). It also supports several keypresses by
 ;storing key-events in a hash in "keyhandler.rkt".

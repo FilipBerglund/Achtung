@@ -1,5 +1,5 @@
 #lang racket/gui
-;Writen by: FILIP BERGLUND
+;Written by: FILIP BERGLUND
 ;The class curve% is defined here. This class defines the curve the player
 ;controls when playing the game. Functions on the set of all curves in a game are
 ;defined in gamestate% (gamestate.rkt).
@@ -26,7 +26,7 @@
      [y-pos (random 200 (- frame-height 200))])
     (field [collision-off #f]
            [hole #f]
-           ;Makes the curves start as a hole, this way you avoid collitions
+           ;Makes the curves start as a hole, this way you avoid collisions
            ;before you have time to do anything.
            [hole-counter -80]
            ;default-size comes from "settings.rkt"
@@ -55,12 +55,12 @@
            [current-dc curve-dc]
            [current-bitmap-level 'level-1])
 
-    ;The superpowerup is trasparent so that the player knows which one they are on.
-    ;For some reason you can't do this in the initination of the object.
+    ;The superpowerup is transparent so that the player knows which one they are on.
+    ;For some reason you can't do this in the initiation of the object.
     (send superpowerup-dc set-alpha 0.2)
     
     ;So that other curves can check where others have been.
-    ;This funtion is also defined in all subclasses of powerup%.
+    ;This function is also defined in all subclasses of powerup%.
     ;Takes a curve% or powerup% and returns it's bitmap. In the case of curves
     ;it returns the bitmap that is on bitmap-level.
     ;IN: symbol OUT: bitmap
@@ -69,7 +69,7 @@
           curve-dc
           superpowerup-dc))
 
-    ;This is called everytime the curve is drawn, after a random number of
+    ;This is called every time the curve is drawn, after a random number of
     ;frames the curve stops drawing itself for a set number of frames.
     ;IN: void OUT: bool
     (define hole?
@@ -168,7 +168,7 @@
     ;Updates the position and checks if it's within the game screen's borders.
     (define/public (update-pos)
       ;Because the collisions detection is dependent on the curve-size this has to be
-      ;so too. Regarless of whether or not collision-off is true you die when you go
+      ;so too. Regardless of whether or not collision-off is true you die when you go
       ;beyond the screen borders.
       (when (or (< (- frame-width 253) (+ (+ x-pos x-vel) (/ curve-size 2)))
                 (> 13  (- (+ x-pos x-vel) (/ curve-size 2)))

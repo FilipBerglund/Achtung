@@ -1,5 +1,5 @@
 #lang racket/gui
-;Writen by: FILIP BERGLUND
+;Written by: FILIP BERGLUND
 ;The main file. This is where you run the game.
 ;In this file:
 ;The game is initiated here.

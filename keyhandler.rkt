@@ -1,5 +1,5 @@
 #lang racket/gui
-;Writen by: KRISTOFFER BRANDER
+;Written by: KRISTOFFER BRANDER
 ;The purpose of this file is to store key presses. With this you
 ;can ask (in files that require this one) whether or not a key
 ;is down. These functions are used in curve% (curve.rkt) and special-canvas%

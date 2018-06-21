@@ -1,5 +1,5 @@
 #lang racket/gui
-;Writen by: FILIP BERGLUND
+;Written by: FILIP BERGLUND
 ;In this file powerup% and it's subclasses are defined. These
 ;change (often temporarily) some variables in a curve% object
 ;when a curve collides with a powerup.
