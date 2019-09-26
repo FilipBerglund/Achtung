@@ -1,0 +1,1 @@
+("6.12" ("a69fd8ac56dda081fe4ef201c193f22a2c3402e8" . "99119db4f77685cb1b2184c7013b2b9d1ae9c614") #"/Users/filipberglund/Documents/Skola:jobb/TDDC74/Achtung/settings.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"racket" #"gui" #"lang" #"reader.rkt") (collects #"racket" #"gui.rkt") (collects #"racket" #"runtime-config.rkt"))
