@@ -1,6 +1,0 @@
-git pull
-
-git add main.rkt curve.rkt ... # ändrade filer
-git commit -m"Ett meddelande"
-git push
-
